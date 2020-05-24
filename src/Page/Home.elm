@@ -1,7 +1,39 @@
-module Page.Home exposing (view)
+module Page.Home exposing (Model, Msg, init, update, view)
 
+import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
+import Session exposing (Session)
+
+
+
+-- MODEL
+
+
+type alias Model =
+    {}
+
+
+init : Session -> ( Model, Effect Msg )
+init _ =
+    ( {}, FXNone )
+
+
+
+-- UPDATE
+
+
+type Msg
+    = NoOp
+
+
+
+--| SetDarkMode
+
+
+update : Msg -> Model -> ( Model, Effect Msg )
+update msg model =
+    ( model, FXNone )
 
 
 

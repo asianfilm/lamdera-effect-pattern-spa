@@ -30,7 +30,7 @@ import ViewHelpers exposing (backgroundColorFromMode, textColorFromMode)
 type Page
     = BlankPage
     | NotFoundPage
-    | HomePage
+    | HomePage Home.Model
     | CounterPage Counter.Model
     | SettingsPage Settings.Model
 
@@ -45,7 +45,8 @@ init =
 
 
 type PageMsg
-    = GotCounterMsg Counter.Msg
+    = GotHomeMsg Home.Msg
+    | GotCounterMsg Counter.Msg
     | GotSettingsMsg Settings.Msg
 
 
@@ -54,6 +55,10 @@ type PageMsg
 update : PageMsg -> Page -> ( Page, Effect PageMsg )
 update msg page =
     case ( msg, page ) of
+        ( GotHomeMsg subMsg, HomePage model ) ->
+            Home.update subMsg model
+                |> updateWith HomePage GotHomeMsg
+
         ( GotCounterMsg subMsg, CounterPage model ) ->
             Counter.update subMsg model
                 |> updateWith CounterPage GotCounterMsg
@@ -73,7 +78,8 @@ changeRouteTo : Maybe Route -> Session -> Page -> ( Page, Effect PageMsg )
 changeRouteTo maybeRoute session page =
     case maybeRoute of
         Just RouteHome ->
-            ( page, FXNone )
+            Home.init session
+                |> updateWith HomePage GotHomeMsg
 
         Just RouteCounter ->
             Counter.init session
@@ -118,8 +124,8 @@ view _ session page =
         NotFoundPage ->
             viewDocument session page NotFound.view
 
-        HomePage ->
-            viewDocument session page Home.view
+        HomePage _ ->
+            viewPage GotHomeMsg Home.view
 
         CounterPage model ->
             viewPage GotCounterMsg (Counter.view session model)
@@ -169,7 +175,7 @@ navbarLink : Page -> Route -> List (Html msg) -> Html msg
 navbarLink page route linkContent =
     li [ style "float" "right", style "padding" "1em" ]
         (case ( page, route ) of
-            ( HomePage, RouteHome ) ->
+            ( HomePage _, RouteHome ) ->
                 linkContent
 
             ( CounterPage _, RouteCounter ) ->
