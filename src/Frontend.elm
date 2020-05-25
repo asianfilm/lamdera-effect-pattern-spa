@@ -1,5 +1,6 @@
 module Frontend exposing (app, init, perform, update, view)
 
+import AppState exposing (AppState(..))
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
@@ -8,7 +9,7 @@ import Env exposing (navKey)
 import Lamdera
 import Page exposing (Page, PageMsg)
 import Route exposing (Route(..))
-import Session exposing (Session, init)
+import Session exposing (Session)
 import Task
 import Time
 import Types exposing (FrontendModel, FrontendMsg(..), ToBackend(..), ToFrontend(..))
@@ -41,16 +42,19 @@ app =
 
 
 init : Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
-init session url navKey =
+init testEnvironmentSession url navKey =
     let
-        ( model, effect ) =
-            changeRouteTo (Route.fromUrl url)
-                { env = Env.init navKey Time.utc
-                , session = session
-                , page = Page.init
-                }
+        model =
+            { env = Env.init navKey Time.utc
+            , state = AppState.init url
+            , page = Page.init
+            }
     in
-    ( model, FXBatch [ effect, FXGetTimeZone GotTimeZone, FXRequestSession ] )
+    if Env.isTestMode model.env then
+        startRouting url testEnvironmentSession model
+
+    else
+        ( model, FXRequestSession )
 
 
 
@@ -86,7 +90,12 @@ updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Effect Front
 updateFromBackend msg model =
     case msg of
         GotSession session ->
-            ( { model | session = session }, FXNone )
+            case model.state of
+                NotReady url ->
+                    startRouting url session model
+
+                Ready _ ->
+                    ( { model | state = Ready session }, FXNone )
 
 
 
@@ -150,7 +159,7 @@ batchEffect ignore effect ( model, cmds ) =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    Page.view model.env model.session model.page
+    Page.view model.state model.page
         |> Page.mapDocument GotPageMsg
 
 
@@ -160,7 +169,7 @@ view model =
 
 changeRouteTo : Maybe Route -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 changeRouteTo route model =
-    Page.changeRouteTo route model.session model.page
+    Page.changeRouteTo route model.state model.page
         |> fromPage model
 
 
@@ -169,3 +178,12 @@ fromPage model ( page, effect ) =
     ( { model | page = page }
     , mapEffect GotPageMsg effect
     )
+
+
+startRouting : Url.Url -> Session -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
+startRouting url session m =
+    let
+        ( model, effect ) =
+            changeRouteTo (Route.fromUrl url) { m | state = Ready session }
+    in
+    ( model, FXBatch [ FXGetTimeZone GotTimeZone, effect ] )

@@ -6,18 +6,14 @@ import Session exposing (Mode(..), Session)
 import Test exposing (..)
 
 
-sessionKey =
-    getSessionKey
-
-
-defaultUser : Session
-defaultUser =
+guestUser : Session
+guestUser =
     Session.init
 
 
 authenticatedUser : Session
 authenticatedUser =
-    defaultUser |> Session.signIn sessionKey "Stephen"
+    guestUser |> Session.signIn getSessionKey "Stephen"
 
 
 suite : Test
@@ -25,18 +21,18 @@ suite =
     describe "Session"
         [ test "default mode is LightMode" <|
             \() ->
-                defaultUser
+                guestUser
                     |> Session.getMode
                     |> Expect.equal LightMode
         , test "default mode can be changed" <|
             \() ->
-                defaultUser
+                guestUser
                     |> Session.setMode getSessionKey DarkMode
                     |> Session.getMode
                     |> Expect.equal DarkMode
         , test "default user has no name" <|
             \() ->
-                defaultUser
+                guestUser
                     |> Session.getName
                     |> Expect.equal Nothing
         , test "authenticated user has a name" <|

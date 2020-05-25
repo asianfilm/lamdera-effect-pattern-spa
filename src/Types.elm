@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import AppState exposing (AppState)
 import Browser exposing (UrlRequest)
 import Dict exposing (Dict)
 import Env exposing (Env)
@@ -21,7 +22,7 @@ type alias BackendModel =
 
 type alias FrontendModel =
     { env : Env
-    , session : Session
+    , state : AppState
     , page : Page
     }
 

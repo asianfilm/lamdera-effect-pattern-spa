@@ -1,5 +1,6 @@
 module Evergreen.V1.Types exposing (..)
 
+import Evergreen.V1.AppState as AppState
 import Browser
 import Dict
 import Evergreen.V1.Env as Env
@@ -12,7 +13,7 @@ import Url
 
 type alias FrontendModel =
     { env : Env.Env
-    , session : Session.Session
+    , state : AppState.AppState
     , page : Page.Page
     }
 

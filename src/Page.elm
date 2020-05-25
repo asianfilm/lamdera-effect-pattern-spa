@@ -8,9 +8,9 @@ module Page exposing
     , view
     )
 
+import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
-import Env exposing (Env)
 import Html exposing (Html, a, div, li, node, text, ul)
 import Html.Attributes exposing (href, id, rel, style)
 import Page.Blank as Blank
@@ -74,23 +74,28 @@ update msg page =
 
 {-| Return the page and associated effects associated to a route change.
 -}
-changeRouteTo : Maybe Route -> Session -> Page -> ( Page, Effect PageMsg )
-changeRouteTo maybeRoute session _ =
-    case maybeRoute of
-        Just RouteHome ->
-            Home.init session
-                |> updateWith HomePage GotHomeMsg
+changeRouteTo : Maybe Route -> AppState -> Page -> ( Page, Effect PageMsg )
+changeRouteTo maybeRoute state _ =
+    case state of
+        NotReady _ ->
+            ( BlankPage, FXNone )
 
-        Just RouteCounter ->
-            Counter.init session
-                |> updateWith CounterPage GotCounterMsg
+        Ready session ->
+            case maybeRoute of
+                Just RouteHome ->
+                    Home.init session
+                        |> updateWith HomePage GotHomeMsg
 
-        Just RouteSettings ->
-            Settings.init session
-                |> updateWith SettingsPage GotSettingsMsg
+                Just RouteCounter ->
+                    Counter.init session
+                        |> updateWith CounterPage GotCounterMsg
 
-        Nothing ->
-            ( NotFoundPage, FXNone )
+                Just RouteSettings ->
+                    Settings.init session
+                        |> updateWith SettingsPage GotSettingsMsg
+
+                Nothing ->
+                    ( NotFoundPage, FXNone )
 
 
 updateWith :
@@ -110,28 +115,33 @@ updateWith toPage toMsg ( pageModel, effect ) =
 
 {-| Turns the page into an HTML page.
 -}
-view : Env -> Session -> Page -> Document PageMsg
-view _ session page =
-    let
-        viewPage toPageMsg config =
-            viewDocument session page config
-                |> mapDocument toPageMsg
-    in
-    case page of
-        BlankPage ->
-            viewDocument session page Blank.view
+view : AppState -> Page -> Document PageMsg
+view state page =
+    case state of
+        NotReady _ ->
+            { title = "", body = [] }
 
-        NotFoundPage ->
-            viewDocument session page NotFound.view
+        Ready session ->
+            let
+                viewPage toPageMsg config =
+                    viewDocument session page config
+                        |> mapDocument toPageMsg
+            in
+            case page of
+                BlankPage ->
+                    viewDocument session page Blank.view
 
-        HomePage _ ->
-            viewPage GotHomeMsg Home.view
+                NotFoundPage ->
+                    viewDocument session page NotFound.view
 
-        CounterPage model ->
-            viewPage GotCounterMsg (Counter.view session model)
+                HomePage _ ->
+                    viewPage GotHomeMsg Home.view
 
-        SettingsPage model ->
-            viewPage GotSettingsMsg (Settings.view session model)
+                CounterPage model ->
+                    viewPage GotCounterMsg (Counter.view session model)
+
+                SettingsPage model ->
+                    viewPage GotSettingsMsg (Settings.view session model)
 
 
 viewDocument : Session -> Page -> { title : String, content : Html msg } -> Document msg

@@ -3,7 +3,8 @@ module PageTest exposing (..)
 import Frontend
 import Html.Attributes exposing (href)
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
-import Session
+import Secrets exposing (getSessionKey)
+import Session exposing (Session)
 import Test exposing (..)
 import Test.Html.Selector exposing (attribute, id)
 import Types exposing (..)
@@ -11,6 +12,16 @@ import Types exposing (..)
 
 baseUrl =
     "http://localhost:8000/"
+
+
+guestUser : Session
+guestUser =
+    Session.init
+
+
+authenticatedUser : Session
+authenticatedUser =
+    guestUser |> Session.signIn getSessionKey "Stephen"
 
 
 suite : Test
@@ -23,7 +34,8 @@ suite =
         , describe "footer test"
             [ test "every page has link to original Github repository" <|
                 \() ->
-                    start () baseUrl
+                    guestUser
+                        |> start () (baseUrl ++ "#/settings")
                         |> expectViewHas
                             [ id "link-inspiration"
                             , attribute (href "https://github.com/dmy/elm-realworld-example-app")
@@ -32,18 +44,21 @@ suite =
         , describe "settings page"
             [ test "settings page has dark mode button" <|
                 \() ->
-                    start () (baseUrl ++ "#/settings")
+                    guestUser
+                        |> start () (baseUrl ++ "#/settings")
                         |> expectViewHas
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button removes it" <|
                 \() ->
-                    start () (baseUrl ++ "#/settings")
+                    guestUser
+                        |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHasNot
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button adds a light mode button" <|
                 \() ->
-                    start () (baseUrl ++ "#/settings")
+                    guestUser
+                        |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHas
                             [ id "button-light-mode" ]
@@ -51,12 +66,12 @@ suite =
         ]
 
 
-start : () -> String -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
-start flags initialUrl =
+start : () -> String -> Session -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
+start flags initialUrl initialSession =
     ProgramTest.createApplication
         { init =
             \_ url _ ->
-                Frontend.init Session.init url Nothing
+                Frontend.init initialSession url Nothing
                     |> Frontend.perform FrontendIgnored
         , view = Frontend.view
         , update =
@@ -74,7 +89,8 @@ testNavigationLink : String -> Test
 testNavigationLink link =
     test ("link to \"" ++ link ++ "\" page in navigation bar") <|
         \() ->
-            start () baseUrl
+            guestUser
+                |> start () baseUrl
                 |> expectViewHas
                     [ id ("link-" ++ link)
                     , attribute (href ("#/" ++ link))
