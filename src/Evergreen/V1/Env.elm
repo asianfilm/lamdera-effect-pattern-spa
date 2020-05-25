@@ -4,14 +4,6 @@ import Browser.Navigation
 import Time
 
 
-type DevMode
-    = Test
-    | NotTest
-
-
 type Env
-    = Env 
-    { devMode : DevMode
-    , navKey : (Maybe Browser.Navigation.Key)
-    , timeZone : Time.Zone
-    }
+    = DevOrProd Time.Zone Browser.Navigation.Key
+    | Testing Time.Zone

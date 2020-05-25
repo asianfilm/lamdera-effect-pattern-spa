@@ -1,7 +1,5 @@
 module Env exposing
-    ( DevMode(..)
-    , Env
-    , devMode
+    ( Env
     , init
     , navKey
     , timeZone
@@ -12,48 +10,46 @@ import Browser.Navigation as Nav
 import Time
 
 
-type DevMode
-    = Test
-    | NotTest
-
-
 type Env
-    = Env
-        { devMode : DevMode
-        , navKey : Maybe Nav.Key
-        , timeZone : Time.Zone
-        }
+    = DevOrProd Time.Zone Nav.Key
+    | Testing Time.Zone
 
 
 init : Maybe Nav.Key -> Time.Zone -> Env
-init key tz =
-    Env
-        { devMode =
-            if key == Nothing then
-                Test
+init maybeKey tz =
+    case maybeKey of
+        Nothing ->
+            Testing tz
 
-            else
-                NotTest
-        , navKey = key
-        , timeZone = tz
-        }
-
-
-devMode : Env -> DevMode
-devMode (Env env) =
-    env.devMode
+        Just key ->
+            DevOrProd tz key
 
 
 navKey : Env -> Maybe Nav.Key
-navKey (Env env) =
-    env.navKey
+navKey env =
+    case env of
+        Testing _ ->
+            Nothing
+
+        DevOrProd _ key ->
+            Just key
 
 
 timeZone : Env -> Time.Zone
-timeZone (Env env) =
-    env.timeZone
+timeZone env =
+    case env of
+        Testing tz ->
+            tz
+
+        DevOrProd tz _ ->
+            tz
 
 
 updateTimeZone : Time.Zone -> Env -> Env
-updateTimeZone newTimeZone (Env env) =
-    Env { env | timeZone = newTimeZone }
+updateTimeZone tz env =
+    case env of
+        Testing _ ->
+            Testing tz
+
+        DevOrProd _ key ->
+            DevOrProd tz key

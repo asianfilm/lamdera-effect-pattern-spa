@@ -4,7 +4,7 @@ import Browser exposing (Document, UrlRequest(..))
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Effect exposing (Effect(..), mapEffect)
-import Env
+import Env exposing (navKey)
 import Lamdera
 import Page exposing (Page, PageMsg)
 import Route exposing (Route(..))
@@ -104,20 +104,20 @@ perform ignore ( model, effect ) =
                 |> Tuple.mapSecond Cmd.batch
 
         FXReplaceUrl route ->
-            case ( Env.devMode model.env, Env.navKey model.env ) of
-                ( Env.NotTest, Just navKey ) ->
-                    ( model, Route.replaceUrl navKey route )
-
-                _ ->
+            case Env.navKey model.env of
+                Nothing ->
                     ( model, Cmd.none )
+
+                Just key ->
+                    ( model, Route.replaceUrl key route )
 
         FXPushUrl url ->
-            case ( Env.devMode model.env, Env.navKey model.env ) of
-                ( Env.NotTest, Just navKey ) ->
-                    ( model, Nav.pushUrl navKey (Url.toString url) )
-
-                _ ->
+            case Env.navKey model.env of
+                Nothing ->
                     ( model, Cmd.none )
+
+                Just key ->
+                    ( model, Nav.pushUrl key (Url.toString url) )
 
         FXLoadUrl href ->
             ( model, Nav.load href )
