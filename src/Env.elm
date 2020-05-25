@@ -1,5 +1,7 @@
 module Env exposing
-    ( Env
+    ( DevMode(..)
+    , Env
+    , devMode
     , init
     , navKey
     , timeZone
@@ -10,22 +12,39 @@ import Browser.Navigation as Nav
 import Time
 
 
+type DevMode
+    = Test
+    | NotTest
+
+
 type Env
     = Env
-        { navKey : Nav.Key
+        { devMode : DevMode
+        , navKey : Maybe Nav.Key
         , timeZone : Time.Zone
         }
 
 
-init : Nav.Key -> Time.Zone -> Env
+init : Maybe Nav.Key -> Time.Zone -> Env
 init key tz =
     Env
-        { navKey = key
+        { devMode =
+            if key == Nothing then
+                Test
+
+            else
+                NotTest
+        , navKey = key
         , timeZone = tz
         }
 
 
-navKey : Env -> Nav.Key
+devMode : Env -> DevMode
+devMode (Env env) =
+    env.devMode
+
+
+navKey : Env -> Maybe Nav.Key
 navKey (Env env) =
     env.navKey
 

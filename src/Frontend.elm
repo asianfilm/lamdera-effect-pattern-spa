@@ -1,4 +1,4 @@
-module Frontend exposing (app)
+module Frontend exposing (app, init, perform, update, view)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Dom as Dom
@@ -23,7 +23,7 @@ app =
     Lamdera.frontend
         { init =
             \url key ->
-                init Session.init url key
+                init Session.init url (Just key)
                     |> perform FrontendIgnored
         , onUrlRequest = UrlClicked
         , onUrlChange = UrlChanged
@@ -40,7 +40,7 @@ app =
         }
 
 
-init : Session -> Url.Url -> Nav.Key -> ( FrontendModel, Effect FrontendMsg )
+init : Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
 init session url navKey =
     let
         ( model, effect ) =
@@ -50,7 +50,7 @@ init session url navKey =
                 , page = Page.init
                 }
     in
-    ( model, FXBatch [ effect, FXGetTimeZone GotTimeZone, FXRequestSession ] )
+    ( model, FXBatch [ effect, FXRequestSession ] )
 
 
 
@@ -104,10 +104,20 @@ perform ignore ( model, effect ) =
                 |> Tuple.mapSecond Cmd.batch
 
         FXReplaceUrl route ->
-            ( model, Route.replaceUrl (Env.navKey model.env) route )
+            case ( Env.devMode model.env, Env.navKey model.env ) of
+                ( Env.NotTest, Just navKey ) ->
+                    ( model, Route.replaceUrl navKey route )
+
+                _ ->
+                    ( model, Cmd.none )
 
         FXPushUrl url ->
-            ( model, Nav.pushUrl (Env.navKey model.env) (Url.toString url) )
+            case ( Env.devMode model.env, Env.navKey model.env ) of
+                ( Env.NotTest, Just navKey ) ->
+                    ( model, Nav.pushUrl navKey (Url.toString url) )
+
+                _ ->
+                    ( model, Cmd.none )
 
         FXLoadUrl href ->
             ( model, Nav.load href )
@@ -115,13 +125,10 @@ perform ignore ( model, effect ) =
         FXRequestSession ->
             ( model, Lamdera.sendToBackend RequestSession )
 
-        FXDecrementSharedCounter ->
-            ( model, Lamdera.sendToBackend (SaveCounter -1) )
+        FXUpdateSessionCounter i ->
+            ( model, Lamdera.sendToBackend (SaveCounter i) )
 
-        FXIncrementSharedCounter ->
-            ( model, Lamdera.sendToBackend (SaveCounter 1) )
-
-        FXSetMode mode ->
+        FXUpdateSessionMode mode ->
             ( model, Lamdera.sendToBackend (SaveMode mode) )
 
         FXGetTimeZone toMsg ->
@@ -143,7 +150,7 @@ batchEffect ignore effect ( model, cmds ) =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    Page.view model.env model.session model.page
+    Page.view model.session model.page
         |> Page.mapDocument GotPageMsg
 
 

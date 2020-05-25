@@ -2,9 +2,9 @@ module Page.Counter exposing (Model, Msg, init, update, view)
 
 import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (id, style)
 import Session exposing (Session, getCounter)
-import ViewHelpers exposing (viewButton)
+import ViewHelpers exposing (labelToId, viewButton)
 
 
 
@@ -12,12 +12,12 @@ import ViewHelpers exposing (viewButton)
 
 
 type alias Model =
-    Int
+    ( Int, Int )
 
 
 init : Session -> ( Model, Effect Msg )
-init _ =
-    ( 0, FXNone )
+init session =
+    ( ( 0, getCounter session ), FXNone )
 
 
 
@@ -25,26 +25,18 @@ init _ =
 
 
 type Msg
-    = Decrement
-    | Increment
-    | DecrementGlobal
-    | IncrementGlobal
+    = UpdatePageCounter Int
+    | UpdateSessionCounter Int
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        Decrement ->
-            ( model - 1, FXNone )
+        UpdatePageCounter i ->
+            ( Tuple.mapFirst ((+) i) model, FXNone )
 
-        Increment ->
-            ( model + 1, FXNone )
-
-        DecrementGlobal ->
-            ( model, FXDecrementSharedCounter )
-
-        IncrementGlobal ->
-            ( model, FXIncrementSharedCounter )
+        UpdateSessionCounter i ->
+            ( Tuple.mapSecond ((+) i) model, FXUpdateSessionCounter i )
 
 
 
@@ -56,20 +48,22 @@ view session model =
     { title = "Counter"
     , content =
         div []
-            [ viewCounter session "Page State Counter" model ( Decrement, Increment )
-            , viewCounter session "Local State Counter" (getCounter session) ( DecrementGlobal, IncrementGlobal )
+            [ viewCounter session "Page State Counter" (Tuple.first model) UpdatePageCounter
+            , viewCounter session "Local State Counter" (getCounter session) UpdateSessionCounter
             ]
     }
 
 
-viewCounter : Session -> String -> Int -> ( msg, msg ) -> Html msg
-viewCounter session label value ( msgDec, msgInc ) =
+viewCounter : Session -> String -> Int -> (Int -> Msg) -> Html Msg
+viewCounter session label value msg =
     div
-        [ style "margin-bottom" "3em" ]
+        [ id (labelToId "button" label)
+        , style "margin-bottom" "3em"
+        ]
         [ text (String.toUpper label)
         , p [ style "margin-top" "1em" ]
-            [ viewButton session "-" msgDec
-            , viewButton session "+" msgInc
+            [ viewButton session "-" (msg -1)
+            , viewButton session "+" (msg 1)
             , text (" " ++ String.fromInt value ++ " ")
             ]
         ]

@@ -19,11 +19,6 @@ getFX =
     Tuple.second
 
 
-setModeSecure : Mode -> Session -> Session
-setModeSecure =
-    Session.setMode getSessionKey
-
-
 suite : Test
 suite =
     describe "Backend"

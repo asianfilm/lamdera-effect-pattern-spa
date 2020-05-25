@@ -10,9 +10,8 @@ module Page exposing
 
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
-import Env exposing (Env)
 import Html exposing (Html, a, div, li, node, text, ul)
-import Html.Attributes exposing (href, rel, style)
+import Html.Attributes exposing (href, id, rel, style)
 import Page.Blank as Blank
 import Page.Counter as Counter
 import Page.Home as Home
@@ -20,7 +19,7 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route(..))
 import Session exposing (Session(..), getMode)
-import ViewHelpers exposing (backgroundColorFromMode, textColorFromMode)
+import ViewHelpers exposing (backgroundColorFromMode, labelToId, textColorFromMode)
 
 
 
@@ -110,8 +109,8 @@ updateWith toPage toMsg ( pageModel, effect ) =
 
 {-| Turns the page into an HTML page.
 -}
-view : Env -> Session -> Page -> Document PageMsg
-view _ session page =
+view : Session -> Page -> Document PageMsg
+view session page =
     let
         viewPage toPageMsg config =
             viewDocument session page config
@@ -163,26 +162,26 @@ viewHeader _ page =
     div []
         [ ul [ style "list-style-type" "none", style "overflow" "hidden" ]
             (List.reverse
-                [ navbarLink page RouteHome [ text "Home" ]
-                , navbarLink page RouteCounter [ text "Counter" ]
-                , navbarLink page RouteSettings [ text "Settings" ]
+                [ navbarLink page RouteHome "Home"
+                , navbarLink page RouteCounter "Counter"
+                , navbarLink page RouteSettings "Settings"
                 ]
             )
         ]
 
 
-navbarLink : Page -> Route -> List (Html msg) -> Html msg
-navbarLink page route linkContent =
-    li [ style "float" "right", style "padding" "1em" ]
+navbarLink : Page -> Route -> String -> Html msg
+navbarLink page route label =
+    li [ id (labelToId "link" label), style "float" "right", style "padding" "1em" ]
         (case ( page, route ) of
             ( HomePage _, RouteHome ) ->
-                linkContent
+                [ text "Home" ]
 
             ( CounterPage _, RouteCounter ) ->
-                linkContent
+                [ text "Counter" ]
 
             ( SettingsPage _, RouteSettings ) ->
-                linkContent
+                [ text "Settings" ]
 
             _ ->
                 [ a
@@ -190,7 +189,7 @@ navbarLink page route linkContent =
                     , style "color" "inherit"
                     , style "text-decoration" "none"
                     ]
-                    linkContent
+                    [ text label ]
                 ]
         )
 
@@ -199,7 +198,7 @@ viewFooter : Html msg
 viewFooter =
     div [ style "position" "absolute", style "margin-left" "2em", style "width" "100%", style "bottom" "0", style "height" "2em" ]
         [ text "Based on "
-        , a [ href "https://github.com/dmy/elm-realworld-example-app" ]
+        , a [ id "link-inspiration", href "https://github.com/dmy/elm-realworld-example-app" ]
             [ text "Elm RealWorld Example" ]
         ]
 

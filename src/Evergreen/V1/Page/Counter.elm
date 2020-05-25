@@ -1,10 +1,8 @@
 module Evergreen.V1.Page.Counter exposing (..)
 
-type alias Model = Int
+type alias Model = (Int, Int)
 
 
 type Msg
-    = Decrement
-    | Increment
-    | DecrementGlobal
-    | IncrementGlobal
+    = UpdatePageCounter Int
+    | UpdateSessionCounter Int

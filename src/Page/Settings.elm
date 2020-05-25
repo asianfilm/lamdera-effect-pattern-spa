@@ -12,12 +12,12 @@ import ViewHelpers exposing (viewButton)
 
 
 type alias Model =
-    {}
+    Mode
 
 
 init : Session -> ( Model, Effect Msg )
-init _ =
-    ( {}, FXNone )
+init session =
+    ( getMode session, FXNone )
 
 
 
@@ -28,15 +28,11 @@ type Msg
     = SetMode Mode
 
 
-
---| SetDarkMode
-
-
 update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update msg _ =
     case msg of
         SetMode mode ->
-            ( model, FXSetMode mode )
+            ( mode, FXUpdateSessionMode mode )
 
 
 
@@ -44,13 +40,13 @@ update msg model =
 
 
 view : Session -> Model -> { title : String, content : Html Msg }
-view session _ =
+view session model =
     { title = "Settings"
     , content =
         div []
             [ text "SETTINGS"
             , p [ style "margin-top" "1em" ]
-                [ case getMode session of
+                [ case model of
                     LightMode ->
                         viewButton session "Dark Mode" (SetMode DarkMode)
 

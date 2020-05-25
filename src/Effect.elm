@@ -15,11 +15,8 @@ type Effect msg
     | FXLoadUrl String
       -- Session
     | FXRequestSession
-      -- Counter
-    | FXDecrementSharedCounter
-    | FXIncrementSharedCounter
-      -- Settings
-    | FXSetMode Mode
+    | FXUpdateSessionCounter Int
+    | FXUpdateSessionMode Mode
       -- Misc
     | FXGetTimeZone (Time.Zone -> msg)
     | FXScrollToTop
@@ -48,14 +45,11 @@ mapEffect changeMsg effect =
         FXRequestSession ->
             FXRequestSession
 
-        FXDecrementSharedCounter ->
-            FXDecrementSharedCounter
+        FXUpdateSessionCounter i ->
+            FXUpdateSessionCounter i
 
-        FXIncrementSharedCounter ->
-            FXIncrementSharedCounter
-
-        FXSetMode mode ->
-            FXSetMode mode
+        FXUpdateSessionMode mode ->
+            FXUpdateSessionMode mode
 
         FXGetTimeZone toMsg ->
             FXGetTimeZone (toMsg >> changeMsg)
