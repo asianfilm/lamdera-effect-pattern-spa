@@ -32,7 +32,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update _ model =
     ( model, FXNone )
 
 

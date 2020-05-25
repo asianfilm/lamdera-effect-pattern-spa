@@ -74,7 +74,7 @@ update msg page =
 {-| Return the page and associated effects associated to a route change.
 -}
 changeRouteTo : Maybe Route -> Session -> Page -> ( Page, Effect PageMsg )
-changeRouteTo maybeRoute session page =
+changeRouteTo maybeRoute session _ =
     case maybeRoute of
         Just RouteHome ->
             Home.init session
