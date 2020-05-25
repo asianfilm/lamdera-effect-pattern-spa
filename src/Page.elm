@@ -10,6 +10,7 @@ module Page exposing
 
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
+import Env exposing (Env)
 import Html exposing (Html, a, div, li, node, text, ul)
 import Html.Attributes exposing (href, id, rel, style)
 import Page.Blank as Blank
@@ -109,8 +110,8 @@ updateWith toPage toMsg ( pageModel, effect ) =
 
 {-| Turns the page into an HTML page.
 -}
-view : Session -> Page -> Document PageMsg
-view session page =
+view : Env -> Session -> Page -> Document PageMsg
+view _ session page =
     let
         viewPage toPageMsg config =
             viewDocument session page config

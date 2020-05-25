@@ -50,7 +50,7 @@ init session url navKey =
                 , page = Page.init
                 }
     in
-    ( model, FXBatch [ effect, FXRequestSession ] )
+    ( model, FXBatch [ effect, FXGetTimeZone GotTimeZone, FXRequestSession ] )
 
 
 
@@ -150,7 +150,7 @@ batchEffect ignore effect ( model, cmds ) =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    Page.view model.session model.page
+    Page.view model.env model.session model.page
         |> Page.mapDocument GotPageMsg
 
 
