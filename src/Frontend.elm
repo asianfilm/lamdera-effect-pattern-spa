@@ -50,12 +50,14 @@ init state url navKey =
             }
     in
     if state == Nothing then
-        ( model, FXStateRQ )
+        ( model, FXBatch [ FXStateRQ, FXTimeZoneRQ GotTimeZone ] )
 
     else
-        ( model |> changeRouteTo (Route.fromUrl url) |> Tuple.first
-        , FXTimeZoneRQ GotTimeZone
-        )
+        let
+            ( pageModel, pageEffect ) =
+                model |> changeRouteTo (Route.fromUrl url)
+        in
+        ( pageModel, FXBatch [ pageEffect, FXTimeZoneRQ GotTimeZone ] )
 
 
 
@@ -97,9 +99,7 @@ updateFromBackend msg model =
             in
             case model.state of
                 NotReady url ->
-                    ( statefulModel |> changeRouteTo (Route.fromUrl url) |> Tuple.first
-                    , FXTimeZoneRQ GotTimeZone
-                    )
+                    statefulModel |> changeRouteTo (Route.fromUrl url)
 
                 Ready _ ->
                     ( statefulModel, FXNone )
