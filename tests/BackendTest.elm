@@ -31,16 +31,16 @@ suite =
             \() ->
                 Backend.init
                     |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" RequestSession
+                    |> Backend.updateFromFrontend "sid" "cid" F2BSessionRQ
                     |> getFX
                     |> Expect.equal (FXSendSession "cid" Session.init)
         , test "after changing preferences, an updated session is sent to the frontend" <|
             \() ->
                 Backend.init
                     |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" RequestSession
+                    |> Backend.updateFromFrontend "sid" "cid" F2BSessionRQ
                     |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" (SaveMode DarkMode)
+                    |> Backend.updateFromFrontend "sid" "cid" (F2BSaveMode DarkMode)
                     |> getFX
                     |> Expect.equal (FXSendSession "cid" (Session.init |> Session.setMode getSessionKey DarkMode))
         ]

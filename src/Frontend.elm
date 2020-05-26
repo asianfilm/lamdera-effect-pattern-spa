@@ -9,7 +9,6 @@ import Env exposing (navKey)
 import Lamdera
 import Page exposing (Page, PageMsg)
 import Route exposing (Route(..))
-import Session exposing (Session)
 import Task
 import Time
 import Types exposing (FrontendModel, FrontendMsg(..), ToBackend(..), ToFrontend(..))
@@ -24,37 +23,39 @@ app =
     Lamdera.frontend
         { init =
             \url key ->
-                init Session.init url (Just key)
-                    |> perform FrontendIgnored
+                init Nothing url (Just key)
+                    |> perform Ignored
         , onUrlRequest = UrlClicked
         , onUrlChange = UrlChanged
         , update =
             \msg model ->
                 update msg model
-                    |> perform FrontendIgnored
+                    |> perform Ignored
         , updateFromBackend =
             \msg model ->
                 updateFromBackend msg model
-                    |> perform FrontendIgnored
+                    |> perform Ignored
         , subscriptions = \_ -> Sub.none
         , view = view
         }
 
 
-init : Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
-init testEnvironmentSession url navKey =
+init : Maybe AppState -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
+init state url navKey =
     let
         model =
             { env = Env.init navKey Time.utc
-            , state = AppState.init url
+            , state = state |> Maybe.withDefault (NotReady url)
             , page = Page.init
             }
     in
-    if Env.isTestMode model.env then
-        startRouting url testEnvironmentSession model
+    if state == Nothing then
+        ( model, FXStateRQ )
 
     else
-        ( model, FXRequestSession )
+        ( model |> changeRouteTo (Route.fromUrl url) |> Tuple.first
+        , FXTimeZoneRQ GotTimeZone
+        )
 
 
 
@@ -64,16 +65,16 @@ init testEnvironmentSession url navKey =
 update : FrontendMsg -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 update msg model =
     case msg of
-        FrontendIgnored _ ->
+        Ignored _ ->
             ( model, FXNone )
 
         UrlClicked urlRequest ->
             case urlRequest of
                 Internal url ->
-                    ( model, FXPushUrl url )
+                    ( model, FXUrlPush url )
 
                 External url ->
-                    ( model, FXLoadUrl url )
+                    ( model, FXUrlLoad url )
 
         UrlChanged url ->
             changeRouteTo (Route.fromUrl url) model
@@ -89,13 +90,19 @@ update msg model =
 updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 updateFromBackend msg model =
     case msg of
-        GotSession session ->
+        B2FSession session ->
+            let
+                statefulModel =
+                    { model | state = Ready session }
+            in
             case model.state of
                 NotReady url ->
-                    startRouting url session model
+                    ( statefulModel |> changeRouteTo (Route.fromUrl url) |> Tuple.first
+                    , FXTimeZoneRQ GotTimeZone
+                    )
 
                 Ready _ ->
-                    ( { model | state = Ready session }, FXNone )
+                    ( statefulModel, FXNone )
 
 
 
@@ -112,15 +119,29 @@ perform ignore ( model, effect ) =
             List.foldl (batchEffect ignore) ( model, [] ) effects
                 |> Tuple.mapSecond Cmd.batch
 
-        FXReplaceUrl route ->
-            case Env.navKey model.env of
-                Nothing ->
-                    ( model, Cmd.none )
+        -- Requests
+        FXStateRQ ->
+            ( model, Lamdera.sendToBackend F2BSessionRQ )
 
-                Just key ->
-                    ( model, Route.replaceUrl key route )
+        FXTimeZoneRQ toMsg ->
+            ( model, Task.perform toMsg Time.here )
 
-        FXPushUrl url ->
+        -- Session
+        FXSaveCounter i ->
+            ( model, Lamdera.sendToBackend (F2BSaveCounter i) )
+
+        FXSaveMode mode ->
+            ( model, Lamdera.sendToBackend (F2BSaveMode mode) )
+
+        -- UI
+        FXScrollToTop ->
+            ( model, Task.perform (\_ -> ignore "scrollToTop") <| Dom.setViewport 0 0 )
+
+        -- Url
+        FXUrlLoad href ->
+            ( model, Nav.load href )
+
+        FXUrlPush url ->
             case Env.navKey model.env of
                 Nothing ->
                     ( model, Cmd.none )
@@ -128,23 +149,13 @@ perform ignore ( model, effect ) =
                 Just key ->
                     ( model, Nav.pushUrl key (Url.toString url) )
 
-        FXLoadUrl href ->
-            ( model, Nav.load href )
+        FXUrlReplace route ->
+            case Env.navKey model.env of
+                Nothing ->
+                    ( model, Cmd.none )
 
-        FXRequestSession ->
-            ( model, Lamdera.sendToBackend RequestSession )
-
-        FXUpdateSessionCounter i ->
-            ( model, Lamdera.sendToBackend (SaveCounter i) )
-
-        FXUpdateSessionMode mode ->
-            ( model, Lamdera.sendToBackend (SaveMode mode) )
-
-        FXGetTimeZone toMsg ->
-            ( model, Task.perform toMsg Time.here )
-
-        FXScrollToTop ->
-            ( model, Task.perform (\_ -> ignore "scrollToTop") <| Dom.setViewport 0 0 )
+                Just key ->
+                    ( model, Route.replaceUrl key route )
 
 
 batchEffect : (String -> msg) -> Effect msg -> ( FrontendModel, List (Cmd msg) ) -> ( FrontendModel, List (Cmd msg) )
@@ -178,12 +189,3 @@ fromPage model ( page, effect ) =
     ( { model | page = page }
     , mapEffect GotPageMsg effect
     )
-
-
-startRouting : Url.Url -> Session -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
-startRouting url session m =
-    let
-        ( model, effect ) =
-            changeRouteTo (Route.fromUrl url) { m | state = Ready session }
-    in
-    ( model, FXBatch [ FXGetTimeZone GotTimeZone, effect ] )

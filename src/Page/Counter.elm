@@ -36,7 +36,7 @@ update msg model =
             ( Tuple.mapFirst ((+) i) model, FXNone )
 
         UpdateSessionCounter i ->
-            ( Tuple.mapSecond ((+) i) model, FXUpdateSessionCounter i )
+            ( Tuple.mapSecond ((+) i) model, FXSaveCounter i )
 
 
 

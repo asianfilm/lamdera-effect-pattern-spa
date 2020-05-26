@@ -1,7 +1,6 @@
 module Env exposing
     ( Env
     , init
-    , isTestMode
     , navKey
     , timeZone
     , updateTimeZone
@@ -24,16 +23,6 @@ init maybeKey tz =
 
         Just key ->
             DevOrProd tz key
-
-
-isTestMode : Env -> Bool
-isTestMode env =
-    case env of
-        Testing _ ->
-            True
-
-        _ ->
-            False
 
 
 navKey : Env -> Maybe Nav.Key

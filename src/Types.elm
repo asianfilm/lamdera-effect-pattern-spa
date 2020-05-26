@@ -32,7 +32,7 @@ type alias FrontendModel =
 
 
 type FrontendMsg
-    = FrontendIgnored String
+    = Ignored String
       --
     | UrlClicked UrlRequest
     | UrlChanged Url
@@ -42,7 +42,7 @@ type FrontendMsg
 
 
 type ToFrontend
-    = GotSession Session
+    = B2FSession Session
 
 
 type BackendMsg
@@ -50,6 +50,6 @@ type BackendMsg
 
 
 type ToBackend
-    = RequestSession
-    | SaveCounter Int
-    | SaveMode Mode
+    = F2BSessionRQ
+    | F2BSaveCounter Int
+    | F2BSaveMode Mode

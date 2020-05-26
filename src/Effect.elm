@@ -9,17 +9,18 @@ import Url exposing (Url)
 type Effect msg
     = FXNone
     | FXBatch (List (Effect msg))
-      -- Navigation
-    | FXReplaceUrl Route
-    | FXPushUrl Url
-    | FXLoadUrl String
+      -- Requests
+    | FXStateRQ
+    | FXTimeZoneRQ (Time.Zone -> msg)
       -- Session
-    | FXRequestSession
-    | FXUpdateSessionCounter Int
-    | FXUpdateSessionMode Mode
-      -- Misc
-    | FXGetTimeZone (Time.Zone -> msg)
+    | FXSaveCounter Int
+    | FXSaveMode Mode
+      -- UI
     | FXScrollToTop
+      -- Url
+    | FXUrlLoad String
+    | FXUrlPush Url
+    | FXUrlReplace Route
 
 
 {-| Transform the messages produced by an effect.
@@ -33,26 +34,30 @@ mapEffect changeMsg effect =
         FXBatch effects ->
             FXBatch (List.map (mapEffect changeMsg) effects)
 
-        FXReplaceUrl route ->
-            FXReplaceUrl route
+        -- Session
+        FXSaveCounter i ->
+            FXSaveCounter i
 
-        FXPushUrl url ->
-            FXPushUrl url
+        FXSaveMode mode ->
+            FXSaveMode mode
 
-        FXLoadUrl href ->
-            FXLoadUrl href
+        -- Requests
+        FXStateRQ ->
+            FXStateRQ
 
-        FXRequestSession ->
-            FXRequestSession
+        FXTimeZoneRQ toMsg ->
+            FXTimeZoneRQ (toMsg >> changeMsg)
 
-        FXUpdateSessionCounter i ->
-            FXUpdateSessionCounter i
-
-        FXUpdateSessionMode mode ->
-            FXUpdateSessionMode mode
-
-        FXGetTimeZone toMsg ->
-            FXGetTimeZone (toMsg >> changeMsg)
-
+        -- UI
         FXScrollToTop ->
             FXScrollToTop
+
+        -- Url
+        FXUrlLoad href ->
+            FXUrlLoad href
+
+        FXUrlPush url ->
+            FXUrlPush url
+
+        FXUrlReplace route ->
+            FXUrlReplace route

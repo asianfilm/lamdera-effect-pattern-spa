@@ -62,10 +62,10 @@ updateFromFrontend sid cid msg model =
                     Session.init
     in
     case msg of
-        RequestSession ->
+        F2BSessionRQ ->
             ( model, FXSendSession cid session )
 
-        SaveCounter change ->
+        F2BSaveCounter change ->
             let
                 updatedSession =
                     session |> Session.setCounter getSessionKey change
@@ -74,7 +74,7 @@ updateFromFrontend sid cid msg model =
             , FXSendSession cid updatedSession
             )
 
-        SaveMode mode ->
+        F2BSaveMode mode ->
             let
                 updatedSession =
                     session |> Session.setMode getSessionKey mode
@@ -99,7 +99,7 @@ perform ignore ( model, effect ) =
                 |> Tuple.mapSecond Cmd.batch
 
         FXSendSession cid session ->
-            ( model, Lamdera.sendToFrontend cid (GotSession session) )
+            ( model, Lamdera.sendToFrontend cid (B2FSession session) )
 
 
 batchEffect : (String -> msg) -> BackendEffect msg -> ( BackendModel, List (Cmd msg) ) -> ( BackendModel, List (Cmd msg) )

@@ -1,10 +1,11 @@
 module PageTest exposing (..)
 
+import AppState exposing (AppState(..))
 import Frontend
 import Html.Attributes exposing (href)
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
 import Secrets exposing (getSessionKey)
-import Session exposing (Session)
+import Session
 import Test exposing (..)
 import Test.Html.Selector exposing (attribute, id)
 import Types exposing (..)
@@ -14,14 +15,14 @@ baseUrl =
     "http://localhost:8000/"
 
 
-guestUser : Session
+guestUser : AppState
 guestUser =
-    Session.init
+    Session.init |> Ready
 
 
-authenticatedUser : Session
+authenticatedUser : AppState
 authenticatedUser =
-    guestUser |> Session.signIn getSessionKey "Stephen"
+    Session.init |> Session.signIn getSessionKey "Stephen" |> Ready
 
 
 suite : Test
@@ -66,18 +67,18 @@ suite =
         ]
 
 
-start : () -> String -> Session -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
-start flags initialUrl initialSession =
+start : () -> String -> AppState -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
+start flags initialUrl initialState =
     ProgramTest.createApplication
         { init =
             \_ url _ ->
-                Frontend.init initialSession url Nothing
-                    |> Frontend.perform FrontendIgnored
+                Frontend.init (Just initialState) url Nothing
+                    |> Frontend.perform Ignored
         , view = Frontend.view
         , update =
             \msg model ->
                 Frontend.update msg model
-                    |> Frontend.perform FrontendIgnored
+                    |> Frontend.perform Ignored
         , onUrlRequest = UrlClicked
         , onUrlChange = UrlChanged
         }

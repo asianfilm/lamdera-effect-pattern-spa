@@ -32,7 +32,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg _ =
     case msg of
         SetMode mode ->
-            ( mode, FXUpdateSessionMode mode )
+            ( mode, FXSaveMode mode )
 
 
 
