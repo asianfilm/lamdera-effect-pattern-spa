@@ -135,7 +135,7 @@ view env state page =
                 NotFoundPage ->
                     viewDocument session page NotFound.view
 
-                HomePage model ->
+                HomePage _ ->
                     viewPage GotHomeMsg (Home.view env)
 
                 CounterPage model ->

@@ -9,38 +9,59 @@ import Test exposing (..)
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..))
 
 
-getModel : ( a, b ) -> a
-getModel =
-    Tuple.first
-
-
-getFX : ( a, b ) -> b
-getFX =
-    Tuple.second
-
-
 suite : Test
 suite =
     describe "Backend"
         [ test "on initialization, the sessions dictionary is empty" <|
             \() ->
                 Backend.init
-                    |> getModel
-                    |> Expect.equal { sessions = Dict.empty }
-        , test "request for saved session on a new backend returns LightMode" <|
+                    |> expectSessionStoreSize 0
+        , test "sessions are only stored once" <|
             \() ->
                 Backend.init
-                    |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" F2BSessionRQ
-                    |> getFX
-                    |> Expect.equal (FXSendSession "cid" Session.init)
+                    |> sessionRequest
+                    |> saveMode DarkMode
+                    |> saveMode LightMode
+                    |> expectSessionStoreSize 1
+        , test "request for saved session on a new backend returns the default session" <|
+            \() ->
+                Backend.init
+                    |> sessionRequest
+                    |> expectEffect (FXSendSession "cid" Session.init)
         , test "after changing preferences, an updated session is sent to the frontend" <|
             \() ->
                 Backend.init
-                    |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" F2BSessionRQ
-                    |> getModel
-                    |> Backend.updateFromFrontend "sid" "cid" (F2BSaveMode DarkMode)
-                    |> getFX
-                    |> Expect.equal (FXSendSession "cid" (Session.init |> Session.setMode getSessionKey DarkMode))
+                    |> sessionRequest
+                    |> saveMode DarkMode
+                    |> expectEffect (FXSendSession "cid" (Session.init |> Session.setMode getSessionKey DarkMode))
         ]
+
+
+
+-- HELPERS
+
+
+expectEffect : BackendEffect BackendMsg -> ( BackendModel, BackendEffect BackendMsg ) -> Expectation
+expectEffect e b =
+    if e == Tuple.second b then
+        Expect.pass
+
+    else
+        Expect.fail "The effect to peform does not match"
+
+
+expectSessionStoreSize : Int -> ( BackendModel, BackendEffect BackendMsg ) -> Expectation
+expectSessionStoreSize size b =
+    if size == (b |> Tuple.first |> .sessions |> Dict.size) then
+        Expect.pass
+
+    else
+        Expect.fail ("The count of sessions does not equal " ++ String.fromInt size)
+
+
+saveMode mode t =
+    t |> Tuple.first |> Backend.updateFromFrontend "sid" "cid" (F2BSaveMode mode)
+
+
+sessionRequest t =
+    t |> Tuple.first |> Backend.updateFromFrontend "sid" "cid" F2BSessionRQ

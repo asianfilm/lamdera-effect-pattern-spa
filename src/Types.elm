@@ -16,7 +16,8 @@ import Url exposing (Url)
 
 
 type alias BackendModel =
-    { sessions : Dict SessionId Session
+    { sessions : Dict SessionId ( Int, Session )
+    , time : Int
     }
 
 
@@ -49,6 +50,7 @@ type ToFrontend
 
 type BackendMsg
     = BackendIgnored String
+    | GarbageCollect Time.Posix
 
 
 type ToBackend

@@ -68,7 +68,7 @@ init state url navKey =
 
 
 subscriptions : FrontendModel -> Sub FrontendMsg
-subscriptions model =
+subscriptions _ =
     Time.every (60 * 1000) Tick
 
 
