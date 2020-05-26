@@ -11,6 +11,7 @@ module Page exposing
 import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
+import Env exposing (Env)
 import Html exposing (Html, a, div, li, node, text, ul)
 import Html.Attributes exposing (href, id, rel, style)
 import Page.Blank as Blank
@@ -115,8 +116,8 @@ updateWith toPage toMsg ( pageModel, effect ) =
 
 {-| Turns the page into an HTML page.
 -}
-view : AppState -> Page -> Document PageMsg
-view state page =
+view : Env -> AppState -> Page -> Document PageMsg
+view env state page =
     case state of
         NotReady _ ->
             { title = "", body = [] }
@@ -134,8 +135,8 @@ view state page =
                 NotFoundPage ->
                     viewDocument session page NotFound.view
 
-                HomePage _ ->
-                    viewPage GotHomeMsg Home.view
+                HomePage model ->
+                    viewPage GotHomeMsg (Home.view env)
 
                 CounterPage model ->
                     viewPage GotCounterMsg (Counter.view session model)

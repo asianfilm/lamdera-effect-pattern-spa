@@ -1,9 +1,10 @@
-module ViewHelpers exposing (backgroundColorFromMode, labelToId, textColorFromMode, viewButton)
+module ViewHelpers exposing (backgroundColorFromMode, formatTime, labelToId, textColorFromMode, viewButton)
 
 import Html exposing (Html, button, text)
 import Html.Attributes exposing (id, style)
 import Html.Events exposing (onClick)
 import Session exposing (Mode(..), Session, getMode)
+import Time
 
 
 labelToId : String -> String -> String
@@ -48,6 +49,16 @@ buttonBackgroundColorFromMode m =
 
         LightMode ->
             "white"
+
+
+formatTime : Time.Zone -> Time.Posix -> String
+formatTime zone posix =
+    let
+        element : (Time.Zone -> Time.Posix -> Int) -> String
+        element e =
+            String.padLeft 2 '0' <| String.fromInt <| e zone posix
+    in
+    element Time.toHour ++ ":" ++ element Time.toMinute
 
 
 textColorFromMode : Mode -> String

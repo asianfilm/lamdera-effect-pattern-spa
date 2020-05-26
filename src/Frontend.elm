@@ -35,7 +35,7 @@ app =
             \msg model ->
                 updateFromBackend msg model
                     |> perform Ignored
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , view = view
         }
 
@@ -44,20 +44,32 @@ init : Maybe AppState -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect Fro
 init state url navKey =
     let
         model =
-            { env = Env.init navKey Time.utc
+            { env = Env.init navKey
             , page = Page.init
             , state = state |> Maybe.withDefault (NotReady url)
             }
+
+        commonEffects =
+            [ FXTimeNowRQ Tick, FXTimeZoneRQ GotTimeZone ]
     in
     if state == Nothing then
-        ( model, FXBatch [ FXStateRQ, FXTimeZoneRQ GotTimeZone ] )
+        ( model, FXBatch (FXStateRQ :: commonEffects) )
 
     else
         let
             ( pageModel, pageEffect ) =
                 model |> changeRouteTo (Route.fromUrl url)
         in
-        ( pageModel, FXBatch [ pageEffect, FXTimeZoneRQ GotTimeZone ] )
+        ( pageModel, FXBatch (pageEffect :: commonEffects) )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : FrontendModel -> Sub FrontendMsg
+subscriptions model =
+    Time.every (60 * 1000) Tick
 
 
 
@@ -86,7 +98,10 @@ update msg model =
                 |> fromPage model
 
         GotTimeZone timeZone ->
-            ( { model | env = Env.updateTimeZone timeZone model.env }, FXNone )
+            ( { model | env = Env.setTimeZone timeZone model.env }, FXNone )
+
+        Tick newTime ->
+            ( { model | env = Env.setTime newTime model.env }, FXNone )
 
 
 updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
@@ -122,6 +137,9 @@ perform ignore ( model, effect ) =
         -- Requests
         FXStateRQ ->
             ( model, Lamdera.sendToBackend F2BSessionRQ )
+
+        FXTimeNowRQ toMsg ->
+            ( model, Task.perform toMsg Time.now )
 
         FXTimeZoneRQ toMsg ->
             ( model, Task.perform toMsg Time.here )
@@ -170,7 +188,7 @@ batchEffect ignore effect ( model, cmds ) =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    Page.view model.state model.page
+    Page.view model.env model.state model.page
         |> Page.mapDocument GotPageMsg
 
 

@@ -5,5 +5,5 @@ import Time
 
 
 type Env
-    = DevOrProd Time.Zone Browser.Navigation.Key
-    | Testing Time.Zone
+    = DevOrProd Int Time.Zone Browser.Navigation.Key
+    | Testing Int Time.Zone

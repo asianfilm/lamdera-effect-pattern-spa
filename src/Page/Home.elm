@@ -1,9 +1,11 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
 import Effect exposing (Effect(..))
+import Env exposing (Env)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Session exposing (Session)
+import ViewHelpers exposing (formatTime)
 
 
 
@@ -40,13 +42,13 @@ update _ model =
 -- VIEW
 
 
-view : { title : String, content : Html msg }
-view =
+view : Env -> { title : String, content : Html Msg }
+view env =
     { title = "Home"
     , content =
         div []
             [ text "HOME"
             , p [ style "margin-top" "1em" ]
-                [ text "Welcome to our SPA" ]
+                [ text ("The time is " ++ formatTime (Env.timeZone env) (Env.time env)) ]
             ]
     }

@@ -39,6 +39,8 @@ type FrontendMsg
       --
     | GotTimeZone Time.Zone
     | GotPageMsg PageMsg
+      --
+    | Tick Time.Posix
 
 
 type ToFrontend

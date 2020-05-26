@@ -29,6 +29,7 @@ type FrontendMsg
     | UrlChanged Url.Url
     | GotTimeZone Time.Zone
     | GotPageMsg Page.PageMsg
+    | Tick Time.Posix
 
 
 type ToBackend

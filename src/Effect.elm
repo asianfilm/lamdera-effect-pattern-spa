@@ -11,6 +11,7 @@ type Effect msg
     | FXBatch (List (Effect msg))
       -- Requests
     | FXStateRQ
+    | FXTimeNowRQ (Time.Posix -> msg)
     | FXTimeZoneRQ (Time.Zone -> msg)
       -- Session
     | FXSaveCounter Int
@@ -44,6 +45,9 @@ mapEffect changeMsg effect =
         -- Requests
         FXStateRQ ->
             FXStateRQ
+
+        FXTimeNowRQ toMsg ->
+            FXTimeNowRQ (toMsg >> changeMsg)
 
         FXTimeZoneRQ toMsg ->
             FXTimeZoneRQ (toMsg >> changeMsg)
