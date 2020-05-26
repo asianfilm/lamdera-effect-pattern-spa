@@ -1,3 +1,6 @@
 .idea
 elm-stuff
 lamdera-stuff
+
+# Ignore Evergreen directory until ready to deploy to Lamdera
+src/Evergreen
