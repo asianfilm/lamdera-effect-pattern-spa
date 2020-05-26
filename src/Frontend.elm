@@ -45,8 +45,8 @@ init state url navKey =
     let
         model =
             { env = Env.init navKey Time.utc
-            , state = state |> Maybe.withDefault (NotReady url)
             , page = Page.init
+            , state = state |> Maybe.withDefault (NotReady url)
             }
     in
     if state == Nothing then

@@ -22,8 +22,8 @@ type alias BackendModel =
 
 type alias FrontendModel =
     { env : Env
-    , state : AppState
     , page : Page
+    , state : AppState
     }
 
 

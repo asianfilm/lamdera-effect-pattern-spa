@@ -13,8 +13,8 @@ import Url
 
 type alias FrontendModel =
     { env : Env.Env
-    , state : AppState.AppState
     , page : Page.Page
+    , state : AppState.AppState
     }
 
 
@@ -24,7 +24,7 @@ type alias BackendModel =
 
 
 type FrontendMsg
-    = FrontendIgnored String
+    = Ignored String
     | UrlClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | GotTimeZone Time.Zone
@@ -32,9 +32,9 @@ type FrontendMsg
 
 
 type ToBackend
-    = RequestSession
-    | SaveCounter Int
-    | SaveMode Session.Mode
+    = F2BSessionRQ
+    | F2BSaveCounter Int
+    | F2BSaveMode Session.Mode
 
 
 type BackendMsg
@@ -42,4 +42,4 @@ type BackendMsg
 
 
 type ToFrontend
-    = GotSession Session.Session
+    = B2FSession Session.Session
