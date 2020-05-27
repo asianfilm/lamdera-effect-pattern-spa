@@ -6,14 +6,15 @@ module Page exposing
     , mapDocument
     , update
     , view
+    , viewNavBar
     )
 
 import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
-import Html exposing (Html, a, div, li, node, text, ul)
-import Html.Attributes exposing (href, id, rel, style)
+import Html exposing (Html, a, button, div, nav, node, span, text)
+import Html.Attributes exposing (attribute, href, id, rel, style)
 import Page.Blank as Blank
 import Page.Counter as Counter
 import Page.Home as Home
@@ -21,6 +22,8 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route(..))
 import Session exposing (Session(..), getMode)
+import Svg exposing (path, svg)
+import Svg.Attributes exposing (class, d, viewBox)
 import ViewHelpers exposing (backgroundColorFromMode, labelToId, textColorFromMode)
 
 
@@ -149,14 +152,15 @@ viewDocument : Session -> Page -> { title : String, content : Html msg } -> Docu
 viewDocument session page { title, content } =
     { title = title ++ " - My SPA"
     , body =
-        [ node "link" [ rel "stylesheet", href "/reset.css" ] []
+        --[ node "link" [ rel "stylesheet", href "https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" ] []
+        [ node "link" [ rel "stylesheet", href "/css/main.css" ] []
         , div
             [ style "position" "relative"
             , style "min-height" "100vh"
             , style "background-color" (backgroundColorFromMode (getMode session))
             , style "color" (textColorFromMode (getMode session))
             ]
-            [ viewHeader session page
+            [ viewNavBar page
             , viewContent content
             , viewFooter
             ]
@@ -169,22 +173,42 @@ viewContent content =
     div [ style "margin" "2em" ] [ content ]
 
 
-viewHeader : Session -> Page -> Html msg
-viewHeader _ page =
-    div []
-        [ ul [ style "list-style-type" "none", style "overflow" "hidden" ]
-            (List.reverse
-                [ navbarLink page RouteHome "Home"
-                , navbarLink page RouteCounter "Counter"
-                , navbarLink page RouteSettings "Settings"
+viewNavBar : Page -> Html msg
+viewNavBar page =
+    nav [ class "flex items-center justify-between flex-wrap bg-teal-500 p-6" ]
+        [ div [ class "flex items-center flex-shrink-0 text-white mr-6" ]
+            [ span [ class "font-semibold text-xl tracking-tight" ] [ text "My SPA" ] ]
+        , div [ class "block lg:hidden" ]
+            [ button [ class "flex items-center px-3 py-2 border rounded text-teal-200 border-teal-400 hover:text-white hover:border-white" ]
+                [ svg [ class "fill-current h-3 w-3", viewBox "0 0 20 20", attribute "xmlns" "http://www.w3.org/2000/svg" ]
+                    [ node "title"
+                        []
+                        [ text "Menu" ]
+                    , path [ d "M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" ]
+                        []
+                    ]
                 ]
-            )
+            ]
+        , div [ class "w-full block flex-grow lg:flex lg:items-center lg:w-auto" ]
+            [ div [ class "text-md lg:flex-grow" ]
+                [ viewNavBarLink page RouteHome "Home"
+                , viewNavBarLink page RouteCounter "Counter"
+                , viewNavBarLink page RouteSettings "Settings"
+                ]
+            , div []
+                [ a
+                    [ class "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0"
+                    , Route.href RouteHome
+                    ]
+                    [ text "Login" ]
+                ]
+            ]
         ]
 
 
-navbarLink : Page -> Route -> String -> Html msg
-navbarLink page route label =
-    li [ id (labelToId "link" label), style "float" "right", style "padding" "1em" ]
+viewNavBarLink : Page -> Route -> String -> Html msg
+viewNavBarLink page route label =
+    div [ id (labelToId "link" label), class "block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4" ]
         (case ( page, route ) of
             ( HomePage _, RouteHome ) ->
                 [ text "Home" ]
@@ -196,13 +220,7 @@ navbarLink page route label =
                 [ text "Settings" ]
 
             _ ->
-                [ a
-                    [ Route.href route
-                    , style "color" "inherit"
-                    , style "text-decoration" "none"
-                    ]
-                    [ text label ]
-                ]
+                [ a [ Route.href route ] [ text label ] ]
         )
 
 
