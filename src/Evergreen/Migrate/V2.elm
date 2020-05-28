@@ -9,7 +9,7 @@ import Evergreen.V2.AppState as NewAppState
 import Evergreen.V2.Env as NewEnv
 import Evergreen.V2.Page as NewPage
 import Evergreen.V2.Session as NewSession
-import Evergreen.V2.Types as New
+import Types as New
 import Lamdera.Migrations exposing (..)
 
 

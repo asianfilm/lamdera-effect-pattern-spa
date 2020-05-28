@@ -1,16 +1,16 @@
 module Evergreen.V2.Page exposing (..)
 
-import Evergreen.V2.Page.Counter as PageCounter
-import Evergreen.V2.Page.Home as PageHome
-import Evergreen.V2.Page.Settings as PageSettings
+import Evergreen.V2.Page.Counter as Page.Counter
+import Evergreen.V2.Page.Home as Page.Home
+import Evergreen.V2.Page.Settings as Page.Settings
 
 
 type Page
     = Blank
     | NotFound
-    | Home PageHome.Model
-    | Counter PageCounter.Model
-    | Settings PageSettings.Model
+    | Home Page.Home.Model
+    | Counter Page.Counter.Model
+    | Settings Page.Settings.Model
 
 
 type NavBarMsg
@@ -19,7 +19,7 @@ type NavBarMsg
 
 
 type PageMsg
-    = HomeMsg PageHome.Msg
-    | CounterMsg PageCounter.Msg
-    | SettingsMsg PageSettings.Msg
+    = HomeMsg Page.Home.Msg
+    | CounterMsg Page.Counter.Msg
+    | SettingsMsg Page.Settings.Msg
     | NavBarMsg NavBarMsg
