@@ -1,19 +1,19 @@
 module Evergreen.V1.Page exposing (..)
 
-import Evergreen.V1.Page.Counter as Page.Counter
-import Evergreen.V1.Page.Home as Page.Home
-import Evergreen.V1.Page.Settings as Page.Settings
+import Evergreen.V1.Page.Counter as PageCounter
+import Evergreen.V1.Page.Home as PageHome
+import Evergreen.V1.Page.Settings as PageSettings
 
 
 type Page
     = BlankPage
     | NotFoundPage
-    | HomePage Page.Home.Model
-    | CounterPage Page.Counter.Model
-    | SettingsPage Page.Settings.Model
+    | HomePage PageHome.Model
+    | CounterPage PageCounter.Model
+    | SettingsPage PageSettings.Model
 
 
 type PageMsg
-    = GotHomeMsg Page.Home.Msg
-    | GotCounterMsg Page.Counter.Msg
-    | GotSettingsMsg Page.Settings.Msg
+    = GotHomeMsg PageHome.Msg
+    | GotCounterMsg PageCounter.Msg
+    | GotSettingsMsg PageSettings.Msg

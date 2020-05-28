@@ -14,11 +14,12 @@ type Effect msg
     | FXTimeNowRQ (Time.Posix -> msg)
     | FXTimeZoneRQ (Time.Zone -> msg)
       -- Session
+    | FXLogin
+    | FXLogout
     | FXSaveCounter Int
     | FXSaveMode Mode
       -- UI
     | FXScrollToTop
-    | FXToggleMenu
       -- Url
     | FXUrlLoad String
     | FXUrlPush Url
@@ -37,6 +38,12 @@ mapEffect changeMsg effect =
             FXBatch (List.map (mapEffect changeMsg) effects)
 
         -- Session
+        FXLogin ->
+            FXLogin
+
+        FXLogout ->
+            FXLogout
+
         FXSaveCounter i ->
             FXSaveCounter i
 
@@ -56,9 +63,6 @@ mapEffect changeMsg effect =
         -- UI
         FXScrollToTop ->
             FXScrollToTop
-
-        FXToggleMenu ->
-            FXToggleMenu
 
         -- Url
         FXUrlLoad href ->

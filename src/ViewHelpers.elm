@@ -1,6 +1,6 @@
 module ViewHelpers exposing (..)
 
-import Html exposing (Attribute, Html, a, button, div, text)
+import Html exposing (Attribute, Html, a, button, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Session exposing (Mode(..), Session, getMode)
@@ -8,11 +8,11 @@ import Time
 
 
 navLink : Bool -> Bool -> String -> Attribute msg -> Html msg
-navLink isActive isBounded label href =
+navLink isActive isLogo label href =
     a
         [ Attr.id (labelToId "link" label)
-        , Attr.class "block mt-4 lg:inline-block lg:mt-0 text-teal-200 mr-4"
-        , Attr.classList [ ( "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white", isBounded ) ]
+        , Attr.class "block inline-block mt-0 text-teal-200 mr-4"
+        , Attr.classList [ ( "flex items-center flex-shrink-0 text-white mr-6 font-semibold text-xl tracking-tight", isLogo ) ]
         , Attr.classList [ ( "hover:text-white", not isActive ) ]
         , href
         ]
@@ -41,15 +41,6 @@ viewButton session label msg =
         , onClick msg
         ]
         [ text label ]
-
-
-viewFooter : Html msg
-viewFooter =
-    div [ Attr.style "position" "absolute", Attr.style "margin-left" "2em", Attr.style "width" "100%", Attr.style "bottom" "0", Attr.style "height" "2em" ]
-        [ text "Based on "
-        , a [ Attr.id "link-inspiration", Attr.href "https://github.com/dmy/elm-realworld-example-app" ]
-            [ text "Elm RealWorld Example" ]
-        ]
 
 
 backgroundColorFromMode : Mode -> String

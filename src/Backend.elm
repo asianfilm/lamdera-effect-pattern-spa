@@ -90,6 +90,24 @@ updateFromFrontend sid cid msg model =
                     Session.init
     in
     case msg of
+        F2BLogin ->
+            let
+                updatedSession =
+                    session |> Session.signIn getSessionKey "Stephen"
+            in
+            ( { model | sessions = Dict.insert sid ( model.time, updatedSession ) model.sessions }
+            , FXSendSession cid updatedSession
+            )
+
+        F2BLogout ->
+            let
+                updatedSession =
+                    Session.init
+            in
+            ( { model | sessions = Dict.insert sid ( model.time, updatedSession ) model.sessions }
+            , FXSendSession cid updatedSession
+            )
+
         F2BSessionRQ ->
             ( { model | sessions = Dict.insert sid ( model.time, session ) model.sessions }
             , FXSendSession cid session

@@ -145,6 +145,12 @@ perform ignore ( model, effect ) =
             ( model, Task.perform toMsg Time.here )
 
         -- Session
+        FXLogin ->
+            ( model, Lamdera.sendToBackend F2BLogin )
+
+        FXLogout ->
+            ( model, Lamdera.sendToBackend F2BLogout )
+
         FXSaveCounter i ->
             ( model, Lamdera.sendToBackend (F2BSaveCounter i) )
 
@@ -154,9 +160,6 @@ perform ignore ( model, effect ) =
         -- UI
         FXScrollToTop ->
             ( model, Task.perform (\_ -> ignore "scrollToTop") <| Dom.setViewport 0 0 )
-
-        FXToggleMenu ->
-            ( { model | env = Env.toggleOpenState model.env }, Cmd.none )
 
         -- Url
         FXUrlLoad href ->

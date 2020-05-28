@@ -54,6 +54,8 @@ type BackendMsg
 
 
 type ToBackend
-    = F2BSessionRQ
+    = F2BLogin
+    | F2BLogout
+    | F2BSessionRQ
     | F2BSaveCounter Int
     | F2BSaveMode Mode

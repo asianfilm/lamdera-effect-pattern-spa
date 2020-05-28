@@ -2,12 +2,10 @@ module Env exposing
     ( Env
     , init
     , navKey
-    , openState
     , setTime
     , setTimeZone
     , time
     , timeZone
-    , toggleOpenState
     )
 
 import Browser.Navigation as Nav
@@ -24,8 +22,7 @@ type Env
 
 
 type alias CommonValues =
-    { isOpen : Bool
-    , time : Int
+    { time : Int
     , zone : Time.Zone
     }
 
@@ -34,7 +31,7 @@ init : Maybe Nav.Key -> Env
 init maybeKey =
     let
         cv =
-            CommonValues True 0 Time.utc
+            CommonValues 0 Time.utc
     in
     case maybeKey of
         Nothing ->
@@ -56,16 +53,6 @@ navKey env =
 
         DevOrProd _ key ->
             Just key
-
-
-openState : Env -> Bool
-openState env =
-    case env of
-        Testing cv ->
-            cv.isOpen
-
-        DevOrProd cv _ ->
-            cv.isOpen
 
 
 time : Env -> Time.Posix
@@ -110,13 +97,3 @@ setTimeZone tz env =
 
         DevOrProd cv key ->
             DevOrProd { cv | zone = tz } key
-
-
-toggleOpenState : Env -> Env
-toggleOpenState env =
-    case env of
-        Testing cv ->
-            Testing { cv | isOpen = not cv.isOpen }
-
-        DevOrProd cv key ->
-            DevOrProd { cv | isOpen = not cv.isOpen } key

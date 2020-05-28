@@ -12,7 +12,7 @@ import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
-import Html exposing (Html, button, div, nav, node, span, text)
+import Html exposing (Html, div, nav, node, span, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Page.Blank as Blank
@@ -22,8 +22,6 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route)
 import Session exposing (Session(..), getMode)
-import Svg exposing (path, svg)
-import Svg.Attributes exposing (class, d, viewBox)
 import ViewHelpers exposing (backgroundColorFromMode, textColorFromMode)
 
 
@@ -56,7 +54,8 @@ type PageMsg
 
 
 type NavBarMsg
-    = ToggleMenu
+    = Login
+    | Logout
 
 
 
@@ -82,11 +81,13 @@ update msg page =
 
         ( NavBarMsg subMsg, _ ) ->
             case subMsg of
-                ToggleMenu ->
-                    ( page, FXToggleMenu )
+                Login ->
+                    ( page, FXLogin )
+
+                Logout ->
+                    ( page, FXLogout )
 
         ( _, _ ) ->
-            -- Disregard messages that arrive for the wrong page.
             ( NotFound, FXNone )
 
 
@@ -113,7 +114,7 @@ view env state page =
                     viewDocument session
 
                 viewHeader =
-                    viewNavBar session page (Env.openState env)
+                    viewNavBar session page
 
                 viewPage toPageMsg config =
                     viewDoc config
@@ -144,60 +145,43 @@ viewDocument session { title, content } =
         , div
             [ Attr.style "position" "relative"
             , Attr.style "min-height" "100vh"
+            , Attr.style "padding" "2em"
             , Attr.style "background-color" (backgroundColorFromMode (getMode session))
             , Attr.style "color" (textColorFromMode (getMode session))
             ]
-            [ viewContent content
-            , ViewHelpers.viewFooter
-            ]
+            [ content ]
         ]
     }
 
 
-viewContent : Html msg -> Html msg
-viewContent content =
-    div [ Attr.style "padding" "2em" ] [ content ]
-
-
-viewNavBar : Session -> Page -> Bool -> List (Html PageMsg)
-viewNavBar session page isOpen =
-    [ nav [ class "flex items-center justify-between flex-wrap bg-teal-500 p-6" ]
-        [ div [ class "flex items-center flex-shrink-0 text-white mr-6" ]
-            [ span [ class "font-semibold text-xl tracking-tight" ] [ text "My SPA" ] ]
-        , div [ class "block lg:hidden" ]
-            [ button
-                [ class "flex items-center px-3 py-2 border rounded text-teal-200 border-teal-400 hover:text-white hover:border-white"
-                , onClick (NavBarMsg ToggleMenu)
-                ]
-                [ svg [ class "fill-current h-3 w-3", viewBox "0 0 20 20", Attr.attribute "xmlns" "http://www.w3.org/2000/svg" ]
-                    [ node "title" [] [ text "Menu" ]
-                    , path [ d "M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" ] []
+viewNavBar : Session -> Page -> List (Html PageMsg)
+viewNavBar session page =
+    [ nav [ Attr.class "flex items-center justify-between flex-wrap bg-teal-500 p-6" ]
+        [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
+            [ span [] [ viewLogoLink page Route.Home "Lamdera" ]
+            , div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
+                [ div
+                    [ Attr.class "text-md flex-grow" ]
+                    [ viewRegularLink page Route.Counter "Counter"
+                    , viewRegularLink page Route.Settings "Settings"
                     ]
                 ]
             ]
-        , div
-            [ Attr.class "w-full block flex-grow lg:flex lg:items-center lg:w-auto" ]
-            (if isOpen then
-                [ div [ class "text-md lg:flex-grow" ]
-                    [ viewRegularLink page Route.Home "Home"
-                    , viewRegularLink page Route.Counter "Counter"
-                    , viewRegularLink page Route.Settings "Settings"
-                    ]
-                , div []
-                    (case Session.getName session of
-                        Just _ ->
-                            [ viewAccountLink Route.Home "Logout" ]
+        , div []
+            (case Session.getName session of
+                Just name ->
+                    [ viewAccountLink ("Logout " ++ name) (NavBarMsg Logout) ]
 
-                        Nothing ->
-                            [ viewAccountLink Route.Home "Login" ]
-                    )
-                ]
-
-             else
-                []
+                Nothing ->
+                    [ viewAccountLink "Login" (NavBarMsg Login) ]
             )
         ]
     ]
+
+
+viewLogoLink : Page -> Route -> String -> Html msg
+viewLogoLink page route id =
+    ViewHelpers.navLink (isActive page route) True id (Route.href route)
 
 
 viewRegularLink : Page -> Route -> String -> Html msg
@@ -205,9 +189,15 @@ viewRegularLink page route id =
     ViewHelpers.navLink (isActive page route) False id (Route.href route)
 
 
-viewAccountLink : Route -> String -> Html msg
-viewAccountLink route id =
-    ViewHelpers.navLink True True id (Route.href route)
+viewAccountLink : String -> PageMsg -> Html PageMsg
+viewAccountLink label msg =
+    div
+        [ Attr.id (ViewHelpers.labelToId "link" label)
+        , Attr.class "block inline-block text-teal-200 mr-4"
+        , Attr.class "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white"
+        , onClick msg
+        ]
+        [ text label ]
 
 
 isActive : Page -> Route -> Bool

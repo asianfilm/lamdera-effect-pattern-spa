@@ -32,16 +32,6 @@ suite =
             [ testNavigationLink "counter"
             , testNavigationLink "settings"
             ]
-        , describe "footer test"
-            [ test "every page has link to original Github repository" <|
-                \() ->
-                    guestUser
-                        |> start () (baseUrl ++ "#/settings")
-                        |> expectViewHas
-                            [ id "link-inspiration"
-                            , attribute (href "https://github.com/dmy/elm-realworld-example-app")
-                            ]
-            ]
         , describe "settings page"
             [ test "settings page has dark mode button" <|
                 \() ->
