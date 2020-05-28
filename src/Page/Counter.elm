@@ -4,7 +4,7 @@ import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (id, style)
 import Session exposing (Session, getCounter)
-import ViewHelpers exposing (labelToId, viewButton)
+import View.Helpers exposing (labelToId, viewButton)
 
 
 

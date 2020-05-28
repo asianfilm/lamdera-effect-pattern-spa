@@ -12,9 +12,8 @@ import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
-import Html exposing (Html, div, nav, node, span, text)
+import Html exposing (Html, div, nav, node, span)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick)
 import Page.Blank as Blank
 import Page.Counter as Counter
 import Page.Home as Home
@@ -22,7 +21,8 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route)
 import Session exposing (Session(..), getMode)
-import ViewHelpers exposing (backgroundColorFromMode, textColorFromMode)
+import View.Helpers exposing (backgroundColorFromMode, textColorFromMode)
+import View.Link as Link
 
 
 
@@ -56,6 +56,7 @@ type PageMsg
 type NavBarMsg
     = Login
     | Logout
+    | ClickLink Route
 
 
 
@@ -87,6 +88,9 @@ update msg page =
                 Logout ->
                     ( page, FXLogout )
 
+                ClickLink route ->
+                    ( page, FXUrlReplace route )
+
         ( _, _ ) ->
             ( NotFound, FXNone )
 
@@ -113,12 +117,12 @@ view env state page =
                 viewDoc =
                     viewDocument session
 
-                viewHeader =
-                    viewNavBar session page
+                viewHead =
+                    viewHeader session page
 
                 viewPage toPageMsg config =
                     viewDoc config
-                        |> mapDocument viewHeader toPageMsg
+                        |> mapDocument viewHead toPageMsg
             in
             case page of
                 Blank ->
@@ -154,16 +158,16 @@ viewDocument session { title, content } =
     }
 
 
-viewNavBar : Session -> Page -> List (Html PageMsg)
-viewNavBar session page =
+viewHeader : Session -> Page -> List (Html PageMsg)
+viewHeader session page =
     [ nav [ Attr.class "flex items-center justify-between flex-wrap bg-teal-500 p-6" ]
         [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
-            [ span [] [ viewLogoLink page Route.Home "Lamdera" ]
+            [ span [] [ viewLink page Route.Home ]
             , div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
                 [ div
                     [ Attr.class "text-md flex-grow" ]
-                    [ viewRegularLink page Route.Counter "Counter"
-                    , viewRegularLink page Route.Settings "Settings"
+                    [ viewLink page Route.Counter
+                    , viewLink page Route.Settings
                     ]
                 ]
             ]
@@ -179,25 +183,23 @@ viewNavBar session page =
     ]
 
 
-viewLogoLink : Page -> Route -> String -> Html msg
-viewLogoLink page route id =
-    ViewHelpers.navLink (isActive page route) True id (Route.href route)
-
-
-viewRegularLink : Page -> Route -> String -> Html msg
-viewRegularLink page route id =
-    ViewHelpers.navLink (isActive page route) False id (Route.href route)
-
-
 viewAccountLink : String -> PageMsg -> Html PageMsg
 viewAccountLink label msg =
-    div
-        [ Attr.id (ViewHelpers.labelToId "link" label)
-        , Attr.class "block inline-block text-teal-200 mr-4"
-        , Attr.class "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white"
-        , onClick msg
-        ]
-        [ text label ]
+    Link.link
+        |> Link.isActive True
+        |> Link.isBounded True
+        |> Link.onClick msg
+        |> Link.withLabel label
+        |> Link.view
+
+
+viewLink : Page -> Route -> Html PageMsg
+viewLink page route =
+    Link.link
+        |> Link.isActive (isActive page route)
+        |> Link.withLabel (Route.toString route)
+        |> Link.onClick (NavBarMsg (ClickLink route))
+        |> Link.view
 
 
 isActive : Page -> Route -> Bool

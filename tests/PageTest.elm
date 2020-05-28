@@ -83,6 +83,4 @@ testNavigationLink link =
             guestUser
                 |> start () baseUrl
                 |> expectViewHas
-                    [ id ("link-" ++ link)
-                    , attribute (href ("#/" ++ link))
-                    ]
+                    [ id ("link-" ++ link) ]

@@ -5,7 +5,7 @@ import Env exposing (Env)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Session exposing (Session)
-import ViewHelpers exposing (formatTime)
+import View.Helpers exposing (formatTime)
 
 
 
