@@ -210,6 +210,6 @@ changeRouteTo route model =
 
 fromPage : FrontendModel -> ( Page, Effect PageMsg ) -> ( FrontendModel, Effect FrontendMsg )
 fromPage model ( page, effect ) =
-    ( { model | page = page }
+    ( { model | page = Just page }
     , mapEffect GotPageMsg effect
     )

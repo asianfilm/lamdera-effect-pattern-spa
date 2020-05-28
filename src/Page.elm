@@ -14,7 +14,6 @@ import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
 import Html exposing (Html, div, nav, node, span)
 import Html.Attributes as Attr
-import Page.Blank as Blank
 import Page.Counter as Counter
 import Page.Home as Home
 import Page.NotFound as NotFound
@@ -30,16 +29,15 @@ import View.Link as Link
 
 
 type Page
-    = Blank
-    | NotFound
-    | Home Home.Model
+    = Home Home.Model
     | Counter Counter.Model
+    | NotFound
     | Settings Settings.Model
 
 
-init : Page
+init : Maybe Page
 init =
-    Blank
+    Nothing
 
 
 
@@ -65,22 +63,22 @@ type NavBarMsg
 
 {-| Update the page from a message, returning an updated page and effects.
 -}
-update : PageMsg -> Page -> ( Page, Effect PageMsg )
-update msg page =
-    case ( msg, page ) of
-        ( HomeMsg subMsg, Home model ) ->
+update : PageMsg -> Maybe Page -> ( Page, Effect PageMsg )
+update msg maybePage =
+    case ( msg, maybePage ) of
+        ( HomeMsg subMsg, Just (Home model) ) ->
             Home.update subMsg model
                 |> updateWith Home HomeMsg
 
-        ( CounterMsg subMsg, Counter model ) ->
+        ( CounterMsg subMsg, Just (Counter model) ) ->
             Counter.update subMsg model
                 |> updateWith Counter CounterMsg
 
-        ( SettingsMsg subMsg, Settings model ) ->
+        ( SettingsMsg subMsg, Just (Settings model) ) ->
             Settings.update subMsg model
                 |> updateWith Settings SettingsMsg
 
-        ( NavBarMsg subMsg, _ ) ->
+        ( NavBarMsg subMsg, Just page ) ->
             case subMsg of
                 Login ->
                     ( page, FXLogin )
@@ -104,15 +102,17 @@ updateWith toPage toMsg ( pageModel, effect ) =
 -- VIEW
 
 
+emptyView : Document PageMsg
+emptyView =
+    { title = "", body = [] }
+
+
 {-| Turns the page into an HTML page.
 -}
-view : Env -> AppState -> Page -> Document PageMsg
-view env state page =
-    case state of
-        NotReady _ ->
-            { title = "", body = [] }
-
-        Ready session ->
+view : Env -> AppState -> Maybe Page -> Document PageMsg
+view env state maybePage =
+    case ( state, maybePage ) of
+        ( Ready session, Just page ) ->
             let
                 viewDoc =
                     viewDocument session
@@ -125,12 +125,6 @@ view env state page =
                         |> mapDocument viewHead toPageMsg
             in
             case page of
-                Blank ->
-                    viewDoc Blank.view
-
-                NotFound ->
-                    viewDoc NotFound.view
-
                 Home _ ->
                     viewPage HomeMsg (Home.view env)
 
@@ -139,6 +133,15 @@ view env state page =
 
                 Settings model ->
                     viewPage SettingsMsg (Settings.view session model)
+
+                NotFound ->
+                    viewDoc NotFound.view
+
+        ( NotReady _, _ ) ->
+            emptyView
+
+        ( _, Nothing ) ->
+            emptyView
 
 
 viewDocument : Session -> { title : String, content : Html msg } -> Document msg
@@ -228,7 +231,7 @@ changeRouteTo : Maybe Route -> AppState -> ( Page, Effect PageMsg )
 changeRouteTo maybeRoute state =
     case state of
         NotReady _ ->
-            ( Blank, FXNone )
+            ( NotFound, FXNone )
 
         Ready session ->
             case maybeRoute of
