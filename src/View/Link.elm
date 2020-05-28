@@ -1,4 +1,4 @@
-module View.Link exposing (isActive, isBounded, isLogo, link, onClick, view, withLabel)
+module View.Link exposing (isActive, isBounded, link, onClick, view, withLabel)
 
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
@@ -10,7 +10,6 @@ type Link msg
     = Link
         { isActive : Bool
         , isBounded : Bool
-        , isLogo : Bool
         , label : String
         , onClick : msg
         }
@@ -21,7 +20,6 @@ link =
     Link
         { isActive = False
         , isBounded = False
-        , isLogo = False
         , label = ""
         , onClick = ()
         }
@@ -37,17 +35,11 @@ isBounded bounded (Link config) =
     Link { config | isBounded = bounded }
 
 
-isLogo : Bool -> Link msg -> Link msg
-isLogo logo (Link config) =
-    Link { config | isLogo = logo }
-
-
 onClick : msg -> Link () -> Link msg
 onClick onClick_ (Link config) =
     Link
         { isActive = config.isActive
         , isBounded = config.isBounded
-        , isLogo = config.isLogo
         , label = config.label
         , onClick = onClick_
         }
