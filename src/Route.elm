@@ -13,9 +13,9 @@ import Url.Parser as Parser exposing (Parser, oneOf, s)
 
 
 type Route
-    = RouteHome
-    | RouteCounter
-    | RouteSettings
+    = Home
+    | Counter
+    | Settings
 
 
 
@@ -25,9 +25,9 @@ type Route
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map RouteHome Parser.top
-        , Parser.map RouteCounter (s "counter")
-        , Parser.map RouteSettings (s "settings")
+        [ Parser.map Home Parser.top
+        , Parser.map Counter (s "counter")
+        , Parser.map Settings (s "settings")
         ]
 
 
@@ -68,11 +68,11 @@ routeToString page =
 routeToPieces : Route -> List String
 routeToPieces route =
     case route of
-        RouteHome ->
+        Home ->
             []
 
-        RouteCounter ->
+        Counter ->
             [ "counter" ]
 
-        RouteSettings ->
+        Settings ->
             [ "settings" ]

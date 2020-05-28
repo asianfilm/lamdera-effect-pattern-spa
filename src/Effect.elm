@@ -18,6 +18,7 @@ type Effect msg
     | FXSaveMode Mode
       -- UI
     | FXScrollToTop
+    | FXToggleMenu
       -- Url
     | FXUrlLoad String
     | FXUrlPush Url
@@ -55,6 +56,9 @@ mapEffect changeMsg effect =
         -- UI
         FXScrollToTop ->
             FXScrollToTop
+
+        FXToggleMenu ->
+            FXToggleMenu
 
         -- Url
         FXUrlLoad href ->

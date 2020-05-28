@@ -2,10 +2,12 @@ module Env exposing
     ( Env
     , init
     , navKey
+    , openState
     , setTime
     , setTimeZone
     , time
     , timeZone
+    , toggleOpenState
     )
 
 import Browser.Navigation as Nav
@@ -17,18 +19,29 @@ import Time
 
 
 type Env
-    = DevOrProd Int Time.Zone Nav.Key
-    | Testing Int Time.Zone
+    = DevOrProd CommonValues Nav.Key
+    | Testing CommonValues
+
+
+type alias CommonValues =
+    { isOpen : Bool
+    , time : Int
+    , zone : Time.Zone
+    }
 
 
 init : Maybe Nav.Key -> Env
 init maybeKey =
+    let
+        cv =
+            CommonValues True 0 Time.utc
+    in
     case maybeKey of
         Nothing ->
-            Testing 0 Time.utc
+            Testing cv
 
         Just key ->
-            DevOrProd 0 Time.utc key
+            DevOrProd cv key
 
 
 
@@ -38,31 +51,41 @@ init maybeKey =
 navKey : Env -> Maybe Nav.Key
 navKey env =
     case env of
-        Testing _ _ ->
+        Testing _ ->
             Nothing
 
-        DevOrProd _ _ key ->
+        DevOrProd _ key ->
             Just key
+
+
+openState : Env -> Bool
+openState env =
+    case env of
+        Testing cv ->
+            cv.isOpen
+
+        DevOrProd cv _ ->
+            cv.isOpen
 
 
 time : Env -> Time.Posix
 time env =
     case env of
-        Testing t _ ->
-            Time.millisToPosix t
+        Testing cv ->
+            Time.millisToPosix cv.time
 
-        DevOrProd t _ _ ->
-            Time.millisToPosix t
+        DevOrProd cv _ ->
+            Time.millisToPosix cv.time
 
 
 timeZone : Env -> Time.Zone
 timeZone env =
     case env of
-        Testing _ tz ->
-            tz
+        Testing cv ->
+            cv.zone
 
-        DevOrProd _ tz _ ->
-            tz
+        DevOrProd cv _ ->
+            cv.zone
 
 
 
@@ -72,18 +95,28 @@ timeZone env =
 setTime : Time.Posix -> Env -> Env
 setTime t env =
     case env of
-        Testing _ tz ->
-            Testing (Time.posixToMillis t) tz
+        Testing cv ->
+            Testing { cv | time = Time.posixToMillis t }
 
-        DevOrProd _ tz key ->
-            DevOrProd (Time.posixToMillis t) tz key
+        DevOrProd cv key ->
+            DevOrProd { cv | time = Time.posixToMillis t } key
 
 
 setTimeZone : Time.Zone -> Env -> Env
 setTimeZone tz env =
     case env of
-        Testing t _ ->
-            Testing t tz
+        Testing cv ->
+            Testing { cv | zone = tz }
 
-        DevOrProd t _ key ->
-            DevOrProd t tz key
+        DevOrProd cv key ->
+            DevOrProd { cv | zone = tz } key
+
+
+toggleOpenState : Env -> Env
+toggleOpenState env =
+    case env of
+        Testing cv ->
+            Testing { cv | isOpen = not cv.isOpen }
+
+        DevOrProd cv key ->
+            DevOrProd { cv | isOpen = not cv.isOpen } key

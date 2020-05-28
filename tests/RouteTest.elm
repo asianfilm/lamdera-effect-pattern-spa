@@ -1,7 +1,7 @@
 module RouteTest exposing (suite)
 
 import Expect exposing (Expectation)
-import Route exposing (Route(..))
+import Route exposing (Route)
 import Test exposing (..)
 import Url exposing (Url)
 
@@ -9,9 +9,9 @@ import Url exposing (Url)
 suite : Test
 suite =
     describe "Route.fromUrl"
-        [ testUrl "" RouteHome
-        , testUrl "counter" RouteCounter
-        , testUrl "settings" RouteSettings
+        [ testUrl "" Route.Home
+        , testUrl "counter" Route.Counter
+        , testUrl "settings" Route.Settings
         ]
 
 

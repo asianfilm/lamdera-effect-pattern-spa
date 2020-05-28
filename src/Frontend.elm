@@ -155,6 +155,9 @@ perform ignore ( model, effect ) =
         FXScrollToTop ->
             ( model, Task.perform (\_ -> ignore "scrollToTop") <| Dom.setViewport 0 0 )
 
+        FXToggleMenu ->
+            ( { model | env = Env.toggleOpenState model.env }, Cmd.none )
+
         -- Url
         FXUrlLoad href ->
             ( model, Nav.load href )
@@ -189,7 +192,7 @@ batchEffect ignore effect ( model, cmds ) =
 view : FrontendModel -> Document FrontendMsg
 view model =
     Page.view model.env model.state model.page
-        |> Page.mapDocument GotPageMsg
+        |> Page.mapDocument [] GotPageMsg
 
 
 
@@ -198,7 +201,7 @@ view model =
 
 changeRouteTo : Maybe Route -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 changeRouteTo route model =
-    Page.changeRouteTo route model.state model.page
+    Page.changeRouteTo route model.state
         |> fromPage model
 
 
