@@ -1,17 +1,17 @@
 module Frontend exposing (app, init, perform, update, view)
 
-import AppState exposing (AppState(..))
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Effect exposing (Effect(..), mapEffect)
-import Env exposing (navKey)
+import Env exposing (Env, navKey)
 import Lamdera
 import Page exposing (Page, PageMsg)
 import Route exposing (Route(..))
+import Session exposing (Session)
 import Task
 import Time
-import Types exposing (FrontendModel, FrontendMsg(..), ToBackend(..), ToFrontend(..))
+import Types exposing (AppState(..), FrontendModel, FrontendMsg(..), ToBackend(..), ToFrontend(..))
 import Url
 
 
@@ -40,27 +40,27 @@ app =
         }
 
 
-init : Maybe AppState -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
-init state url navKey =
+init : Maybe Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
+init maybeSession url navKey =
     let
-        model =
-            { env = Env.init navKey
-            , page = Page.init
-            , state = state |> Maybe.withDefault (NotReady url)
-            }
+        env =
+            Env.init navKey
 
         commonEffects =
             [ FXTimeNowRQ Tick, FXTimeZoneRQ GotTimeZone ]
     in
-    if state == Nothing then
-        ( model, FXBatch (FXStateRQ :: commonEffects) )
+    case maybeSession of
+        Nothing ->
+            ( { env = env, state = NotReady url }
+            , FXBatch (FXStateRQ :: commonEffects)
+            )
 
-    else
-        let
-            ( pageModel, pageEffect ) =
-                model |> changeRouteTo (Route.fromUrl url)
-        in
-        ( pageModel, FXBatch (pageEffect :: commonEffects) )
+        Just session ->
+            let
+                ( model, initialPageEffect ) =
+                    changeRouteTo (Route.fromUrl url) env session
+            in
+            ( model, FXBatch (initialPageEffect :: commonEffects) )
 
 
 
@@ -91,11 +91,21 @@ update msg model =
                     ( model, FXUrlLoad url )
 
         UrlChanged url ->
-            changeRouteTo (Route.fromUrl url) model
+            case model.state of
+                NotReady _ ->
+                    ( model, FXNone )
+
+                Ready ( _, session ) ->
+                    changeRouteTo (Route.fromUrl url) model.env session
 
         GotPageMsg pageMsg ->
-            Page.update pageMsg model.page
-                |> fromPage model
+            case model.state of
+                NotReady _ ->
+                    ( model, FXNone )
+
+                Ready ( page, session ) ->
+                    Page.update pageMsg page
+                        |> fromPage model.env session
 
         GotTimeZone timeZone ->
             ( { model | env = Env.setTimeZone timeZone model.env }, FXNone )
@@ -108,16 +118,12 @@ updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Effect Front
 updateFromBackend msg model =
     case msg of
         B2FSession session ->
-            let
-                statefulModel =
-                    { model | state = Ready session }
-            in
             case model.state of
                 NotReady url ->
-                    statefulModel |> changeRouteTo (Route.fromUrl url)
+                    changeRouteTo (Route.fromUrl url) model.env session
 
-                Ready _ ->
-                    ( statefulModel, FXNone )
+                Ready ( page, _ ) ->
+                    ( { model | state = Ready ( page, session ) }, FXNone )
 
 
 
@@ -192,24 +198,34 @@ batchEffect ignore effect ( model, cmds ) =
 -- VIEW
 
 
+emptyView : Document msg
+emptyView =
+    { title = "", body = [] }
+
+
 view : FrontendModel -> Document FrontendMsg
 view model =
-    Page.view model.env model.state model.page
-        |> Page.mapDocument [] GotPageMsg
+    case model.state of
+        NotReady _ ->
+            emptyView
+
+        Ready ( page, session ) ->
+            Page.view model.env page session
+                |> Page.mapDocument [] GotPageMsg
 
 
 
 -- HELPERS
 
 
-changeRouteTo : Maybe Route -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
-changeRouteTo route model =
-    Page.changeRouteTo route model.state
-        |> fromPage model
+changeRouteTo : Maybe Route -> Env -> Session -> ( FrontendModel, Effect FrontendMsg )
+changeRouteTo route env session =
+    Page.changeRouteTo route session
+        |> fromPage env session
 
 
-fromPage : FrontendModel -> ( Page, Effect PageMsg ) -> ( FrontendModel, Effect FrontendMsg )
-fromPage model ( page, effect ) =
-    ( { model | page = Just page }
+fromPage : Env -> Session -> ( Page, Effect PageMsg ) -> ( FrontendModel, Effect FrontendMsg )
+fromPage env session ( page, effect ) =
+    ( { env = env, state = Ready ( page, session ) }
     , mapEffect GotPageMsg effect
     )

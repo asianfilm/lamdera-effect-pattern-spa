@@ -1,13 +1,11 @@
 module PageTest exposing (..)
 
-import AppState exposing (AppState(..))
 import Frontend
-import Html.Attributes exposing (href)
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
 import Secrets exposing (getSessionKey)
-import Session
+import Session exposing (Session)
 import Test exposing (..)
-import Test.Html.Selector exposing (attribute, id)
+import Test.Html.Selector exposing (id)
 import Types exposing (..)
 
 
@@ -15,14 +13,14 @@ baseUrl =
     "http://localhost:8000/"
 
 
-guestUser : AppState
-guestUser =
-    Session.init |> Ready
+guestUserSession : Session
+guestUserSession =
+    Session.init
 
 
-authenticatedUser : AppState
+authenticatedUser : Session
 authenticatedUser =
-    Session.init |> Session.signIn getSessionKey "Stephen" |> Ready
+    Session.init |> Session.signIn getSessionKey "Stephen"
 
 
 suite : Test
@@ -35,20 +33,20 @@ suite =
         , describe "settings page"
             [ test "settings page has dark mode button" <|
                 \() ->
-                    guestUser
+                    guestUserSession
                         |> start () (baseUrl ++ "#/settings")
                         |> expectViewHas
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button removes it" <|
                 \() ->
-                    guestUser
+                    guestUserSession
                         |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHasNot
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button adds a light mode button" <|
                 \() ->
-                    guestUser
+                    guestUserSession
                         |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHas
@@ -57,12 +55,12 @@ suite =
         ]
 
 
-start : () -> String -> AppState -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
-start flags initialUrl initialState =
+start : () -> String -> Session -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
+start flags initialUrl initialSession =
     ProgramTest.createApplication
         { init =
             \_ url _ ->
-                Frontend.init (Just initialState) url Nothing
+                Frontend.init (Just initialSession) url Nothing
                     |> Frontend.perform Ignored
         , view = Frontend.view
         , update =
@@ -80,7 +78,7 @@ testNavigationLink : String -> Test
 testNavigationLink link =
     test ("link to \"" ++ link ++ "\" page in navigation bar") <|
         \() ->
-            guestUser
+            guestUserSession
                 |> start () baseUrl
                 |> expectViewHas
                     [ id ("link-" ++ link) ]

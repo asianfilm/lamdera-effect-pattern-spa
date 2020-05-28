@@ -2,13 +2,11 @@ module Page exposing
     ( Page
     , PageMsg
     , changeRouteTo
-    , init
     , mapDocument
     , update
     , view
     )
 
-import AppState exposing (AppState(..))
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
@@ -31,13 +29,8 @@ import View.Link as Link
 type Page
     = Home Home.Model
     | Counter Counter.Model
-    | NotFound
     | Settings Settings.Model
-
-
-init : Maybe Page
-init =
-    Nothing
+    | NotFound
 
 
 
@@ -63,22 +56,22 @@ type NavBarMsg
 
 {-| Update the page from a message, returning an updated page and effects.
 -}
-update : PageMsg -> Maybe Page -> ( Page, Effect PageMsg )
-update msg maybePage =
-    case ( msg, maybePage ) of
-        ( HomeMsg subMsg, Just (Home model) ) ->
+update : PageMsg -> Page -> ( Page, Effect PageMsg )
+update msg page =
+    case ( msg, page ) of
+        ( HomeMsg subMsg, Home model ) ->
             Home.update subMsg model
                 |> updateWith Home HomeMsg
 
-        ( CounterMsg subMsg, Just (Counter model) ) ->
+        ( CounterMsg subMsg, Counter model ) ->
             Counter.update subMsg model
                 |> updateWith Counter CounterMsg
 
-        ( SettingsMsg subMsg, Just (Settings model) ) ->
+        ( SettingsMsg subMsg, Settings model ) ->
             Settings.update subMsg model
                 |> updateWith Settings SettingsMsg
 
-        ( NavBarMsg subMsg, Just page ) ->
+        ( NavBarMsg subMsg, _ ) ->
             case subMsg of
                 Login ->
                     ( page, FXLogin )
@@ -102,46 +95,33 @@ updateWith toPage toMsg ( pageModel, effect ) =
 -- VIEW
 
 
-emptyView : Document PageMsg
-emptyView =
-    { title = "", body = [] }
-
-
 {-| Turns the page into an HTML page.
 -}
-view : Env -> AppState -> Maybe Page -> Document PageMsg
-view env state maybePage =
-    case ( state, maybePage ) of
-        ( Ready session, Just page ) ->
-            let
-                viewDoc =
-                    viewDocument session
+view : Env -> Page -> Session -> Document PageMsg
+view env page session =
+    let
+        viewDoc =
+            viewDocument session
 
-                viewHead =
-                    viewHeader session page
+        viewHead =
+            viewHeader session page
 
-                viewPage toPageMsg config =
-                    viewDoc config
-                        |> mapDocument viewHead toPageMsg
-            in
-            case page of
-                Home _ ->
-                    viewPage HomeMsg (Home.view env)
+        viewPage toPageMsg config =
+            viewDoc config
+                |> mapDocument viewHead toPageMsg
+    in
+    case page of
+        Home _ ->
+            viewPage HomeMsg (Home.view env)
 
-                Counter model ->
-                    viewPage CounterMsg (Counter.view session model)
+        Counter model ->
+            viewPage CounterMsg (Counter.view session model)
 
-                Settings model ->
-                    viewPage SettingsMsg (Settings.view session model)
+        Settings model ->
+            viewPage SettingsMsg (Settings.view session model)
 
-                NotFound ->
-                    viewDoc NotFound.view
-
-        ( NotReady _, _ ) ->
-            emptyView
-
-        ( _, Nothing ) ->
-            emptyView
+        NotFound ->
+            viewDoc NotFound.view
 
 
 viewDocument : Session -> { title : String, content : Html msg } -> Document msg
@@ -227,28 +207,23 @@ isActive page route =
 
 {-| Return the page and associated effects associated to a route change.
 -}
-changeRouteTo : Maybe Route -> AppState -> ( Page, Effect PageMsg )
-changeRouteTo maybeRoute state =
-    case state of
-        NotReady _ ->
+changeRouteTo : Maybe Route -> Session -> ( Page, Effect PageMsg )
+changeRouteTo maybeRoute session =
+    case maybeRoute of
+        Just Route.Home ->
+            Home.init session
+                |> updateWith Home HomeMsg
+
+        Just Route.Counter ->
+            Counter.init session
+                |> updateWith Counter CounterMsg
+
+        Just Route.Settings ->
+            Settings.init session
+                |> updateWith Settings SettingsMsg
+
+        Nothing ->
             ( NotFound, FXNone )
-
-        Ready session ->
-            case maybeRoute of
-                Just Route.Home ->
-                    Home.init session
-                        |> updateWith Home HomeMsg
-
-                Just Route.Counter ->
-                    Counter.init session
-                        |> updateWith Counter CounterMsg
-
-                Just Route.Settings ->
-                    Settings.init session
-                        |> updateWith Settings SettingsMsg
-
-                Nothing ->
-                    ( NotFound, FXNone )
 
 
 {-| To generalize the messages produced by the view code, used to transform:
