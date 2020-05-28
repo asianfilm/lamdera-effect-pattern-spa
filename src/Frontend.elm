@@ -198,16 +198,11 @@ batchEffect ignore effect ( model, cmds ) =
 -- VIEW
 
 
-emptyView : Document msg
-emptyView =
-    { title = "", body = [] }
-
-
 view : FrontendModel -> Document FrontendMsg
 view model =
     case model.state of
         NotReady _ ->
-            emptyView
+            { title = "", body = [] }
 
         Ready ( page, session ) ->
             Page.view model.env page session

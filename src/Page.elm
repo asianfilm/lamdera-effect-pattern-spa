@@ -147,8 +147,7 @@ viewHeader session page =
         [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
             [ span [] [ viewLink page Route.Home ]
             , div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
-                [ div
-                    [ Attr.class "text-md flex-grow" ]
+                [ div [ Attr.class "text-md flex-grow" ]
                     [ viewLink page Route.Counter
                     , viewLink page Route.Settings
                     ]
