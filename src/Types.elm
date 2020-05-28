@@ -49,8 +49,8 @@ type ToFrontend
 
 
 type BackendMsg
-    = BackendIgnored String
-    | GarbageCollect Time.Posix
+    = BKIgnored String
+    | BKGarbageCollect Time.Posix
 
 
 type ToBackend

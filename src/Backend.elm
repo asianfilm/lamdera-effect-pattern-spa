@@ -15,15 +15,15 @@ import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(.
 
 app =
     Lamdera.backend
-        { init = init |> perform BackendIgnored
+        { init = init |> perform BKIgnored
         , update =
             \msg model ->
                 update msg model
-                    |> perform BackendIgnored
+                    |> perform BKIgnored
         , updateFromFrontend =
             \sid cid msg model ->
                 updateFromFrontend sid cid msg model
-                    |> perform BackendIgnored
+                    |> perform BKIgnored
         , subscriptions = subscriptions
         }
 
@@ -37,7 +37,7 @@ type BackendEffect msg
 
 init : ( BackendModel, BackendEffect BackendMsg )
 init =
-    ( { sessions = Dict.empty, time = 0 }, FXTimeNowRQ GarbageCollect )
+    ( { sessions = Dict.empty, time = 0 }, FXTimeNowRQ BKGarbageCollect )
 
 
 
@@ -46,7 +46,7 @@ init =
 
 subscriptions : BackendModel -> Sub BackendMsg
 subscriptions _ =
-    Time.every (60 * 1000) GarbageCollect
+    Time.every (60 * 1000) BKGarbageCollect
 
 
 
@@ -56,10 +56,10 @@ subscriptions _ =
 update : BackendMsg -> BackendModel -> ( BackendModel, BackendEffect BackendMsg )
 update msg model =
     case msg of
-        BackendIgnored _ ->
+        BKIgnored _ ->
             ( model, FXNone )
 
-        GarbageCollect now ->
+        BKGarbageCollect now ->
             let
                 oneHour =
                     1 * 60 * 60 * 1000
