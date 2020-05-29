@@ -46,13 +46,13 @@ href targetRoute =
     Attr.href (routeToString targetRoute)
 
 
-pushUrl : Nav.Key -> Route -> Cmd msg
-pushUrl key route =
-    Nav.pushUrl key (routeToString route)
+pushUrl : String -> Nav.Key -> Cmd msg
+pushUrl url key =
+    Nav.pushUrl key url
 
 
-replaceUrl : Nav.Key -> Route -> Cmd msg
-replaceUrl key route =
+replaceUrl : Route -> Nav.Key -> Cmd msg
+replaceUrl route key =
     Nav.replaceUrl key (routeToString route)
 
 

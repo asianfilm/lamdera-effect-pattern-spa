@@ -1,5 +1,6 @@
 module PageTest exposing (..)
 
+import App exposing (perform)
 import Frontend
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
 import Secrets exposing (getSessionKey)
@@ -58,17 +59,11 @@ suite =
 start : () -> String -> Session -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
 start flags initialUrl initialSession =
     ProgramTest.createApplication
-        { init =
-            \_ url _ ->
-                Frontend.init (Just initialSession) url Nothing
-                    |> Frontend.perform Ignored
+        { init = \_ url _ -> Frontend.init (Just initialSession) url Nothing |> App.perform Ignored
         , view = Frontend.view
-        , update =
-            \msg model ->
-                Frontend.update msg model
-                    |> Frontend.perform Ignored
-        , onUrlRequest = UrlClicked
+        , update = \msg model -> Frontend.update msg model |> App.perform Ignored
         , onUrlChange = UrlChanged
+        , onUrlRequest = UrlClicked
         }
         |> ProgramTest.withBaseUrl initialUrl
         |> ProgramTest.start flags

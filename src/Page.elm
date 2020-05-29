@@ -10,7 +10,7 @@ module Page exposing
 import Browser exposing (Document)
 import Effect exposing (Effect(..), mapEffect)
 import Env exposing (Env)
-import Html exposing (Html, div, nav, node, span)
+import Html exposing (Html, div, nav, node)
 import Html.Attributes as Attr
 import Page.Counter as Counter
 import Page.Home as Home
@@ -145,34 +145,35 @@ viewHeader : Session -> Page -> List (Html PageMsg)
 viewHeader session page =
     [ nav [ Attr.class "flex items-center justify-between flex-wrap bg-teal-500 p-6" ]
         [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
-            [ span [] [ viewLink page Route.Home ]
-            , div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
+            [ div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
                 [ div [ Attr.class "text-md flex-grow" ]
-                    [ viewLink page Route.Counter
-                    , viewLink page Route.Settings
-                    ]
+                    (List.map (viewLink page) [ Route.Home, Route.Counter, Route.Settings ])
                 ]
             ]
         , div []
-            (case Session.getName session of
-                Just name ->
-                    [ viewAccountLink ("Logout " ++ name) (NavBarMsg Logout) ]
-
-                Nothing ->
-                    [ viewAccountLink "Login" (NavBarMsg Login) ]
-            )
+            (viewAuthLinks session)
         ]
     ]
 
 
-viewAccountLink : String -> PageMsg -> Html PageMsg
-viewAccountLink label msg =
+viewAuthLink : String -> PageMsg -> Html PageMsg
+viewAuthLink label msg =
     Link.link
         |> Link.isActive True
         |> Link.isBounded True
         |> Link.onClick msg
         |> Link.withLabel label
         |> Link.view
+
+
+viewAuthLinks : Session -> List (Html PageMsg)
+viewAuthLinks session =
+    case Session.getName session of
+        Just name ->
+            [ viewAuthLink ("Logout " ++ name) (NavBarMsg Logout) ]
+
+        Nothing ->
+            [ viewAuthLink "Login" (NavBarMsg Login) ]
 
 
 viewLink : Page -> Route -> Html PageMsg
@@ -182,6 +183,10 @@ viewLink page route =
         |> Link.withLabel (Route.toString route)
         |> Link.onClick (NavBarMsg (ClickLink route))
         |> Link.view
+
+
+
+-- PRIVATE HELPERS
 
 
 isActive : Page -> Route -> Bool
