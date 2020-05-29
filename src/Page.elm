@@ -79,7 +79,7 @@ update msg page =
                     ( page, FXLogout )
 
                 ClickLink route ->
-                    ( page, FXUrlReplace route )
+                    ( page, FXUrlLoad (Route.routeToString route) )
 
         ( _, _ ) ->
             ( NotFound, FXNone )
