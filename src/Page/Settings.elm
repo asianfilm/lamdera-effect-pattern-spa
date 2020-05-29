@@ -4,7 +4,7 @@ import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Session exposing (Mode(..), Session(..), getMode)
-import View.Helpers exposing (viewButton)
+import View.Button as Button
 
 
 
@@ -40,18 +40,41 @@ update msg _ =
 
 
 view : Session -> Model -> { title : String, content : Html Msg }
-view session model =
+view _ model =
     { title = "Settings"
     , content =
         div []
             [ text "SETTINGS"
             , p [ style "margin-top" "1em" ]
-                [ case model of
-                    LightMode ->
-                        viewButton session "Dark Mode" (SetMode DarkMode)
-
-                    DarkMode ->
-                        viewButton session "Light Mode" (SetMode LightMode)
+                [ Button.button
+                    |> Button.onClick (SetMode (reverseMode model))
+                    |> Button.withMode model
+                    |> Button.withLabel (labelFromMode (reverseMode model))
+                    |> Button.view
                 ]
             ]
     }
+
+
+
+-- PRIVATE HELPERS
+
+
+labelFromMode : Mode -> String
+labelFromMode m =
+    case m of
+        DarkMode ->
+            "Dark Mode"
+
+        LightMode ->
+            "Light Mode"
+
+
+reverseMode : Mode -> Mode
+reverseMode m =
+    case m of
+        DarkMode ->
+            LightMode
+
+        LightMode ->
+            DarkMode

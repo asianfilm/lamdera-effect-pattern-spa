@@ -17,8 +17,8 @@ import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route)
-import Session exposing (Session(..), getMode)
-import View.Helpers exposing (backgroundColorFromMode, textColorFromMode, viewLink)
+import Session exposing (Mode(..), Session(..), getMode)
+import View.Link as Link
 
 
 
@@ -167,11 +167,21 @@ viewAuthLinks session =
 
 viewLinkHelper : Page -> Route -> Html PageMsg
 viewLinkHelper page route =
-    viewLink (isActive page route) False (Route.toString route) (NavBarMsg (ClickLink route))
+    viewLink (isActive page route) False (Route.toLabel route) (NavBarMsg (ClickLink route))
 
 
 
 -- PRIVATE HELPERS
+
+
+backgroundColorFromMode : Mode -> String
+backgroundColorFromMode m =
+    case m of
+        DarkMode ->
+            "#666666"
+
+        LightMode ->
+            "white"
 
 
 isActive : Page -> Route -> Bool
@@ -188,6 +198,26 @@ isActive page route =
 
         _ ->
             False
+
+
+textColorFromMode : Mode -> String
+textColorFromMode m =
+    case m of
+        DarkMode ->
+            "#dddddd"
+
+        LightMode ->
+            "black"
+
+
+viewLink : Bool -> Bool -> String -> msg -> Html msg
+viewLink active bounded label msg =
+    Link.link
+        |> Link.isActive active
+        |> Link.isBounded bounded
+        |> Link.onClick msg
+        |> Link.withLabel label
+        |> Link.view
 
 
 

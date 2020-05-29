@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, pushUrl, replaceUrl, toString)
+module Route exposing (Route(..), fromUrl, href, pushUrl, replaceUrl, toLabel)
 
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
@@ -56,8 +56,8 @@ replaceUrl route key =
     Nav.replaceUrl key (routeToString route)
 
 
-toString : Route -> String
-toString route =
+toLabel : Route -> String
+toLabel route =
     case route of
         Home ->
             "Home"

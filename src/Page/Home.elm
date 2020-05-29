@@ -5,7 +5,7 @@ import Env exposing (Env)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Session exposing (Session)
-import View.Helpers exposing (formatTime)
+import Time
 
 
 
@@ -48,3 +48,17 @@ view env =
                 [ text ("The time is " ++ formatTime (Env.timeZone env) (Env.time env)) ]
             ]
     }
+
+
+
+-- PRIVATE HELPERS
+
+
+formatTime : Time.Zone -> Time.Posix -> String
+formatTime zone posix =
+    let
+        element : (Time.Zone -> Time.Posix -> Int) -> String
+        element e =
+            String.padLeft 2 '0' <| String.fromInt <| e zone posix
+    in
+    element Time.toHour ++ ":" ++ element Time.toMinute

@@ -2,9 +2,9 @@ module Page.Counter exposing (Model, Msg, init, update, view)
 
 import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
-import Html.Attributes exposing (id, style)
-import Session exposing (Session, getCounter)
-import View.Helpers exposing (buttonId, viewButton)
+import Html.Attributes exposing (style)
+import Session exposing (Session, getCounter, getMode)
+import View.Button as Button
 
 
 
@@ -57,13 +57,20 @@ view session model =
 viewCounter : Session -> String -> Int -> (Int -> Msg) -> Html Msg
 viewCounter session label value msg =
     div
-        [ id (buttonId label)
-        , style "margin-bottom" "3em"
+        [ style "margin-bottom" "3em"
         ]
         [ text (String.toUpper label)
         , p [ style "margin-top" "1em" ]
-            [ viewButton session "-" (msg -1)
-            , viewButton session "+" (msg 1)
+            [ Button.button
+                |> Button.onClick (msg -1)
+                |> Button.withMode (getMode session)
+                |> Button.withLabel "-"
+                |> Button.view
+            , Button.button
+                |> Button.onClick (msg 1)
+                |> Button.withMode (getMode session)
+                |> Button.withLabel "+"
+                |> Button.view
             , text (" " ++ String.fromInt value ++ " ")
             ]
         ]
