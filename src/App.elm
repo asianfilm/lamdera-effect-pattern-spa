@@ -51,7 +51,7 @@ perform ignore ( model, effect ) =
                 |> Tuple.mapSecond Cmd.batch
 
         -- Requests
-        FXStateRQ ->
+        FXSessionRQ ->
             ( model, Lamdera.sendToBackend F2BSessionRQ )
 
         FXTimeNowRQ toMsg ->

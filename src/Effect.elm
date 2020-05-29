@@ -10,7 +10,7 @@ type Effect msg
     = FXNone
     | FXBatch (List (Effect msg))
       -- Requests
-    | FXStateRQ
+    | FXSessionRQ
     | FXTimeNowRQ (Time.Posix -> msg)
     | FXTimeZoneRQ (Time.Zone -> msg)
       -- Routing
@@ -38,8 +38,14 @@ mapEffect changeMsg effect =
             FXBatch (List.map (mapEffect changeMsg) effects)
 
         -- Requests
-        FXStateRQ ->
-            FXStateRQ
+        FXSessionRQ ->
+            FXSessionRQ
+
+        FXTimeNowRQ toMsg ->
+            FXTimeNowRQ (toMsg >> changeMsg)
+
+        FXTimeZoneRQ toMsg ->
+            FXTimeZoneRQ (toMsg >> changeMsg)
 
         -- Routing
         FXUrlLoad href ->
@@ -50,12 +56,6 @@ mapEffect changeMsg effect =
 
         FXUrlReplace route ->
             FXUrlReplace route
-
-        FXTimeNowRQ toMsg ->
-            FXTimeNowRQ (toMsg >> changeMsg)
-
-        FXTimeZoneRQ toMsg ->
-            FXTimeZoneRQ (toMsg >> changeMsg)
 
         -- Session
         FXLogin ->

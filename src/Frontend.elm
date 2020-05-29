@@ -29,27 +29,33 @@ app =
 -- INIT
 
 
+{-| The init function behaves differently in different modes
+-- (1) Testing: init starts with a session, but usually without a navigation key
+-- (2) Production or development: no initial session, which is immediately requested
+-}
 init : Maybe Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
 init maybeSession url navKey =
     let
-        env =
-            Env.init navKey
-
-        commonEffects =
-            [ FXTimeNowRQ Tick, FXTimeZoneRQ GotTimeZone ]
+        ( env, commonEffects ) =
+            ( Env.init navKey, [ FXTimeNowRQ Tick, FXTimeZoneRQ GotTimeZone ] )
     in
     case maybeSession of
+        Just session ->
+            initTesting url env commonEffects session
+
         Nothing ->
             ( { env = env, state = NotReady url }
-            , FXBatch (FXStateRQ :: commonEffects)
+            , FXBatch (FXSessionRQ :: commonEffects)
             )
 
-        Just session ->
-            let
-                ( model, initialPageEffect ) =
-                    changeRouteTo (Route.fromUrl url) env session
-            in
-            ( model, FXBatch (initialPageEffect :: commonEffects) )
+
+initTesting : Url.Url -> Env -> List (Effect FrontendMsg) -> Session -> ( FrontendModel, Effect FrontendMsg )
+initTesting url env effects session =
+    let
+        ( testModel, initialPageEffect ) =
+            changeRouteTo (Route.fromUrl url) env session
+    in
+    ( testModel, FXBatch (initialPageEffect :: effects) )
 
 
 
