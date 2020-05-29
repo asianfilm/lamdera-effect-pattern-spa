@@ -77,10 +77,14 @@ update msg model =
                     ( model, FXUrlLoad url )
 
         UrlChanged url ->
-            model |> updateIfAppReady (\_ s -> changeRouteTo (Route.fromUrl url) model.env s)
+            model
+                |> updateIfAppReady
+                    (\_ s -> changeRouteTo (Route.fromUrl url) model.env s)
 
         GotPageMsg pageMsg ->
-            model |> updateIfAppReady (\p s -> Page.update pageMsg p |> fromPage model.env s)
+            model
+                |> updateIfAppReady
+                    (\p s -> Page.update pageMsg p |> fromPage model.env s)
 
         GotTimeZone timeZone ->
             ( { model | env = Env.setTimeZone timeZone model.env }, FXNone )
@@ -107,7 +111,9 @@ updateFromBackend msg model =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    model |> viewIfAppReady (\p s -> Page.view model.env p s |> Page.mapDocument [] GotPageMsg)
+    model
+        |> viewIfAppReady
+            (\p s -> Page.view model.env p s |> Page.mapDocument [] GotPageMsg)
 
 
 
