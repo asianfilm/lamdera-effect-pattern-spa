@@ -5,6 +5,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (onClick)
 import Session exposing (Mode(..), Session, getMode)
 import Time
+import View.Link as Link
 
 
 backgroundColorFromMode : Mode -> String
@@ -27,6 +28,11 @@ buttonBackgroundColorFromMode m =
             "white"
 
 
+buttonId : String -> String
+buttonId label =
+    label |> String.replace " " "-" |> String.toLower |> String.append "button-"
+
+
 formatTime : Time.Zone -> Time.Posix -> String
 formatTime zone posix =
     let
@@ -35,15 +41,6 @@ formatTime zone posix =
             String.padLeft 2 '0' <| String.fromInt <| e zone posix
     in
     element Time.toHour ++ ":" ++ element Time.toMinute
-
-
-labelToId : String -> String -> String
-labelToId kind label =
-    label
-        |> String.replace " " "-"
-        |> String.toLower
-        |> String.append "-"
-        |> String.append kind
 
 
 textColorFromMode : Mode -> String
@@ -59,7 +56,7 @@ textColorFromMode m =
 viewButton : Session -> String -> msg -> Html msg
 viewButton session label msg =
     button
-        [ Attr.id (labelToId "button" label)
+        [ Attr.id (buttonId label)
         , Attr.style "color" (textColorFromMode (getMode session))
         , Attr.style "backgroundColor" (buttonBackgroundColorFromMode (getMode session))
         , Attr.style "padding" "0.5em"
@@ -69,3 +66,13 @@ viewButton session label msg =
         , onClick msg
         ]
         [ text label ]
+
+
+viewLink : Bool -> Bool -> String -> msg -> Html msg
+viewLink active bounded label msg =
+    Link.link
+        |> Link.isActive active
+        |> Link.isBounded bounded
+        |> Link.onClick msg
+        |> Link.withLabel label
+        |> Link.view

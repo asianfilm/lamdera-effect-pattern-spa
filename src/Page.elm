@@ -18,8 +18,7 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route)
 import Session exposing (Session(..), getMode)
-import View.Helpers exposing (backgroundColorFromMode, textColorFromMode)
-import View.Link as Link
+import View.Helpers exposing (backgroundColorFromMode, textColorFromMode, viewLink)
 
 
 
@@ -147,7 +146,7 @@ viewHeader session page =
         [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
             [ div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
                 [ div [ Attr.class "text-md flex-grow" ]
-                    (List.map (viewLink page) [ Route.Home, Route.Counter, Route.Settings ])
+                    (List.map (viewLinkHelper page) [ Route.Home, Route.Counter, Route.Settings ])
                 ]
             ]
         , div []
@@ -156,33 +155,19 @@ viewHeader session page =
     ]
 
 
-viewAuthLink : String -> PageMsg -> Html PageMsg
-viewAuthLink label msg =
-    Link.link
-        |> Link.isActive True
-        |> Link.isBounded True
-        |> Link.onClick msg
-        |> Link.withLabel label
-        |> Link.view
-
-
 viewAuthLinks : Session -> List (Html PageMsg)
 viewAuthLinks session =
     case Session.getName session of
         Just name ->
-            [ viewAuthLink ("Logout " ++ name) (NavBarMsg Logout) ]
+            [ viewLink True True ("Logout " ++ name) (NavBarMsg Logout) ]
 
         Nothing ->
-            [ viewAuthLink "Login" (NavBarMsg Login) ]
+            [ viewLink True True "Login" (NavBarMsg Login) ]
 
 
-viewLink : Page -> Route -> Html PageMsg
-viewLink page route =
-    Link.link
-        |> Link.isActive (isActive page route)
-        |> Link.withLabel (Route.toString route)
-        |> Link.onClick (NavBarMsg (ClickLink route))
-        |> Link.view
+viewLinkHelper : Page -> Route -> Html PageMsg
+viewLinkHelper page route =
+    viewLink (isActive page route) False (Route.toString route) (NavBarMsg (ClickLink route))
 
 
 

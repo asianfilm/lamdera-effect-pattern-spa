@@ -4,7 +4,7 @@ import Effect exposing (Effect(..))
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (id, style)
 import Session exposing (Session, getCounter)
-import View.Helpers exposing (labelToId, viewButton)
+import View.Helpers exposing (buttonId, viewButton)
 
 
 
@@ -57,7 +57,7 @@ view session model =
 viewCounter : Session -> String -> Int -> (Int -> Msg) -> Html Msg
 viewCounter session label value msg =
     div
-        [ id (labelToId "button" label)
+        [ id (buttonId label)
         , style "margin-bottom" "3em"
         ]
         [ text (String.toUpper label)

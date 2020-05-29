@@ -3,7 +3,6 @@ module View.Link exposing (isActive, isBounded, link, onClick, view, withLabel)
 import Html exposing (Html, div, text)
 import Html.Attributes as Attr
 import Html.Events as Events
-import View.Helpers exposing (labelToId)
 
 
 type Link msg
@@ -53,7 +52,7 @@ withLabel label (Link config) =
 view : Link msg -> Html msg
 view (Link config) =
     div
-        [ Attr.id (labelToId "link" config.label)
+        [ Attr.id (config.label |> String.replace " " "-" |> String.toLower |> String.append "link-")
         , Attr.class "block inline-block mt-0 text-teal-200 mr-4"
         , Attr.classList [ ( "hover:text-white", not config.isActive ) ]
         , Attr.classList [ ( "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white", config.isBounded ) ]

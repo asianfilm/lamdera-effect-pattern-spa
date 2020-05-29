@@ -29,10 +29,6 @@ type Msg
     = NoOp
 
 
-
---| SetDarkMode
-
-
 update : Msg -> Model -> ( Model, Effect Msg )
 update _ model =
     ( model, FXNone )
