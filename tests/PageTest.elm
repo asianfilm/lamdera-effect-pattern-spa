@@ -1,13 +1,13 @@
 module PageTest exposing (..)
 
-import App exposing (perform)
+import App
 import Env
 import Frontend
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
 import Secrets exposing (getSessionKey)
 import Session exposing (Session)
 import Test exposing (..)
-import Test.Html.Selector exposing (id)
+import Test.Html.Selector exposing (id, text)
 import Time
 import Types exposing (..)
 
@@ -18,7 +18,7 @@ baseUrl =
 
 guestUser : ( Session, Env.LocalTime )
 guestUser =
-    ( Session.init, ( Time.millisToPosix 0, Time.utc ) )
+    ( Session.init, ( Time.millisToPosix 1590819692000, Time.utc ) )
 
 
 authenticatedUser : ( Session, Env.LocalTime )
@@ -39,7 +39,9 @@ suite =
                     guestUser
                         |> start () (baseUrl ++ "#")
                         |> expectViewHas
-                            [ id "clock" ]
+                            [ id "clock"
+                            , text "The time is 06:21"
+                            ]
             ]
         , describe "settings page"
             [ test "settings page has dark mode button" <|
