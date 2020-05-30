@@ -99,11 +99,18 @@ setTimeZone tz env =
             DevOrProd Nothing key
 
 
-setTimeWithZone : LocalTime -> Env -> Env
-setTimeWithZone lt env =
+setTimeWithZone : ( Maybe Int, Maybe Time.Zone ) -> Env -> Env
+setTimeWithZone ( maybeTime, maybeZone ) env =
+    let
+        maybeLocalTime =
+            Just
+                ( maybeTime |> Maybe.withDefault 0 |> Time.millisToPosix
+                , maybeZone |> Maybe.withDefault Time.utc
+                )
+    in
     case env of
         Testing _ ->
-            Testing (Just lt)
+            Testing maybeLocalTime
 
         DevOrProd _ key ->
-            DevOrProd (Just lt) key
+            DevOrProd maybeLocalTime key

@@ -94,14 +94,10 @@ updateFromBackend msg model =
     case msg of
         B2FSession session ->
             case model.state of
-                NotReady url ( t, tz ) ->
+                NotReady url localTime ->
                     let
                         newEnv =
-                            model.env
-                                |> Env.setTimeWithZone
-                                    ( t |> Maybe.withDefault 0 |> Time.millisToPosix
-                                    , tz |> Maybe.withDefault Time.utc
-                                    )
+                            model.env |> Env.setTimeWithZone localTime
                     in
                     changeRouteTo (Route.fromUrl url) newEnv session
 
