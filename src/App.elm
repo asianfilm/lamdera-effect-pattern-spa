@@ -24,22 +24,6 @@ app config =
         }
 
 
-batchEffect : (String -> msg) -> Effect msg -> ( FrontendModel, List (Cmd msg) ) -> ( FrontendModel, List (Cmd msg) )
-batchEffect ignore effect ( model, cmds ) =
-    perform ignore ( model, effect )
-        |> Tuple.mapSecond (\cmd -> cmd :: cmds)
-
-
-ifNavKey : Env -> (Nav.Key -> Cmd msg) -> Cmd msg
-ifNavKey env cmd =
-    case Env.navKey env of
-        Nothing ->
-            Cmd.none
-
-        Just key ->
-            cmd key
-
-
 perform : (String -> msg) -> ( FrontendModel, Effect msg ) -> ( FrontendModel, Cmd msg )
 perform ignore ( model, effect ) =
     case effect of
@@ -86,3 +70,23 @@ perform ignore ( model, effect ) =
         -- UI
         FXScrollToTop ->
             ( model, Task.perform (\_ -> ignore "scrollToTop") <| Dom.setViewport 0 0 )
+
+
+
+--PRIVATE HELPERS
+
+
+batchEffect : (String -> msg) -> Effect msg -> ( FrontendModel, List (Cmd msg) ) -> ( FrontendModel, List (Cmd msg) )
+batchEffect ignore effect ( model, cmds ) =
+    perform ignore ( model, effect )
+        |> Tuple.mapSecond (\cmd -> cmd :: cmds)
+
+
+ifNavKey : Env -> (Nav.Key -> Cmd msg) -> Cmd msg
+ifNavKey env cmd =
+    case Env.navKey env of
+        Nothing ->
+            Cmd.none
+
+        Just key ->
+            cmd key
