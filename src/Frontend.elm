@@ -33,11 +33,11 @@ app =
 -- (1) Testing: init starts with a session, but usually without a navigation key
 -- (2) Production or development: no initial session, which is immediately requested
 -}
-init : Maybe ( Session, Time.Posix ) -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
-init maybeSession url navKey =
-    case maybeSession of
-        Just ( session, time ) ->
-            changeRouteTo (Route.fromUrl url) (Env.init navKey (Just time)) session
+init : Maybe ( Session, Env.LocalTime ) -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
+init testSetup url navKey =
+    case testSetup of
+        Just ( session, localTime ) ->
+            changeRouteTo (Route.fromUrl url) (Env.init navKey (Just localTime)) session
 
         Nothing ->
             ( { env = Env.init navKey Nothing, state = NotReady url ( Nothing, Nothing ) }

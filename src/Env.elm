@@ -1,5 +1,6 @@
 module Env exposing
     ( Env
+    , LocalTime
     , init
     , navKey
     , setTime
@@ -18,24 +19,24 @@ import Time
 
 type Env
     = DevOrProd (Maybe LocalTime) Nav.Key
-    | Testing LocalTime
+    | Testing (Maybe LocalTime)
 
 
 type alias LocalTime =
     ( Time.Posix, Time.Zone )
 
 
-init : Maybe Nav.Key -> Maybe Time.Posix -> Env
-init maybeKey maybeTime =
-    case ( maybeKey, maybeTime ) of
+init : Maybe Nav.Key -> Maybe LocalTime -> Env
+init maybeKey maybeLocalTime =
+    case ( maybeKey, maybeLocalTime ) of
         ( Just key, _ ) ->
             DevOrProd Nothing key
 
-        ( _, Just t ) ->
-            Testing ( t, Time.utc )
-
         ( Nothing, Nothing ) ->
-            Testing ( Time.millisToPosix 0, Time.utc )
+            Testing Nothing
+
+        ( _, lt ) ->
+            Testing lt
 
 
 
@@ -56,7 +57,7 @@ timeWithZone : Env -> Maybe ( Time.Posix, Time.Zone )
 timeWithZone env =
     case env of
         Testing lt ->
-            Just lt
+            lt
 
         DevOrProd lt _ ->
             lt
@@ -69,8 +70,11 @@ timeWithZone env =
 setTime : Time.Posix -> Env -> Env
 setTime t env =
     case env of
-        Testing ( _, tz ) ->
-            Testing ( t, tz )
+        Testing (Just ( _, tz )) ->
+            Testing (Just ( t, tz ))
+
+        Testing Nothing ->
+            Testing Nothing
 
         DevOrProd (Just ( _, tz )) key ->
             DevOrProd (Just ( t, tz )) key
@@ -82,8 +86,11 @@ setTime t env =
 setTimeZone : Time.Zone -> Env -> Env
 setTimeZone tz env =
     case env of
-        Testing ( t, _ ) ->
-            Testing ( t, tz )
+        Testing (Just ( t, _ )) ->
+            Testing (Just ( t, tz ))
+
+        Testing Nothing ->
+            Testing Nothing
 
         DevOrProd (Just ( t, _ )) key ->
             DevOrProd (Just ( t, tz )) key
@@ -96,7 +103,7 @@ setTimeWithZone : LocalTime -> Env -> Env
 setTimeWithZone lt env =
     case env of
         Testing _ ->
-            Testing lt
+            Testing (Just lt)
 
         DevOrProd _ key ->
             DevOrProd (Just lt) key

@@ -1,6 +1,7 @@
 module PageTest exposing (..)
 
 import App exposing (perform)
+import Env
 import Frontend
 import ProgramTest exposing (ProgramTest, clickButton, expectViewHas, expectViewHasNot)
 import Secrets exposing (getSessionKey)
@@ -15,14 +16,14 @@ baseUrl =
     "http://localhost:8000/"
 
 
-guestUser : ( Session, Time.Posix )
+guestUser : ( Session, Env.LocalTime )
 guestUser =
-    ( Session.init, Time.millisToPosix 0 )
+    ( Session.init, ( Time.millisToPosix 0, Time.utc ) )
 
 
-authenticatedUser : ( Session, Time.Posix )
+authenticatedUser : ( Session, Env.LocalTime )
 authenticatedUser =
-    ( Session.init |> Session.signIn getSessionKey "Stephen", Time.millisToPosix 0 )
+    ( Session.init |> Session.signIn getSessionKey "Stephen", ( Time.millisToPosix 0, Time.utc ) )
 
 
 suite : Test
@@ -65,16 +66,16 @@ suite =
         ]
 
 
-start : () -> String -> ( Session, Time.Posix ) -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
-start flags initialUrl setup =
+start : () -> String -> ( Session, Env.LocalTime ) -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
+start flags testUrl testSetup =
     ProgramTest.createApplication
-        { init = \_ url _ -> Frontend.init (Just setup) url Nothing |> App.perform Ignored
+        { init = \_ url _ -> Frontend.init (Just testSetup) url Nothing |> App.perform Ignored
         , view = Frontend.view
         , update = \msg model -> Frontend.update msg model |> App.perform Ignored
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlClicked
         }
-        |> ProgramTest.withBaseUrl initialUrl
+        |> ProgramTest.withBaseUrl testUrl
         |> ProgramTest.start flags
 
 
