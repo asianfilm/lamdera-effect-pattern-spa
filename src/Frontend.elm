@@ -21,7 +21,7 @@ app =
         , updateFromBackend = updateFromBackend
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlClicked
-        , subscriptions = \_ -> Time.every (60 * 1000) Tick
+        , subscriptions = \_ -> Time.every (60 * 1000) GotTick
         }
 
 
@@ -33,29 +33,16 @@ app =
 -- (1) Testing: init starts with a session, but usually without a navigation key
 -- (2) Production or development: no initial session, which is immediately requested
 -}
-init : Maybe Session -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
+init : Maybe ( Session, Time.Posix ) -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
 init maybeSession url navKey =
-    let
-        ( env, commonEffects ) =
-            ( Env.init navKey, [ FXTimeNowRQ Tick, FXTimeZoneRQ GotTimeZone ] )
-    in
     case maybeSession of
-        Just session ->
-            initTesting url env commonEffects session
+        Just ( session, time ) ->
+            changeRouteTo (Route.fromUrl url) (Env.init navKey (Just time)) session
 
         Nothing ->
-            ( { env = env, state = NotReady url }
-            , FXBatch (FXSessionRQ :: commonEffects)
+            ( { env = Env.init navKey Nothing, state = NotReady url ( Nothing, Nothing ) }
+            , FXBatch [ FXSessionRQ, FXTimeNowRQ GotTick, FXTimeZoneRQ GotTimeZone ]
             )
-
-
-initTesting : Url.Url -> Env -> List (Effect FrontendMsg) -> Session -> ( FrontendModel, Effect FrontendMsg )
-initTesting url env effects session =
-    let
-        ( testModel, initialPageEffect ) =
-            changeRouteTo (Route.fromUrl url) env session
-    in
-    ( testModel, FXBatch (initialPageEffect :: effects) )
 
 
 
@@ -64,33 +51,42 @@ initTesting url env effects session =
 
 update : FrontendMsg -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
 update msg model =
-    case msg of
-        Ignored _ ->
-            ( model, FXNone )
+    case model.state of
+        NotReady url ( t, tz ) ->
+            case msg of
+                GotTimeZone timeZone ->
+                    ( { model | state = NotReady url ( t, Just timeZone ) }, FXNone )
 
-        UrlClicked urlRequest ->
-            case urlRequest of
-                Internal url ->
-                    ( model, FXUrlPush url )
+                GotTick newTime ->
+                    ( { model | state = NotReady url ( Just (Time.posixToMillis newTime), tz ) }, FXNone )
 
-                External url ->
-                    ( model, FXUrlLoad url )
+                _ ->
+                    ( model, FXNone )
 
-        UrlChanged url ->
-            model
-                |> updateIfAppReady
-                    (\_ s -> changeRouteTo (Route.fromUrl url) model.env s)
+        Ready ( page, session ) ->
+            case msg of
+                Ignored _ ->
+                    ( model, FXNone )
 
-        GotPageMsg pageMsg ->
-            model
-                |> updateIfAppReady
-                    (\p s -> Page.update pageMsg p |> fromPage model.env s)
+                GotPageMsg pageMsg ->
+                    Page.update pageMsg page |> fromPage model.env session
 
-        GotTimeZone timeZone ->
-            ( { model | env = Env.setTimeZone timeZone model.env }, FXNone )
+                GotTick newTime ->
+                    ( { model | env = Env.setTime newTime model.env }, FXNone )
 
-        Tick newTime ->
-            ( { model | env = Env.setTime newTime model.env }, FXNone )
+                GotTimeZone timeZone ->
+                    ( { model | env = Env.setTimeZone timeZone model.env }, FXNone )
+
+                UrlClicked urlRequest ->
+                    case urlRequest of
+                        Internal url ->
+                            ( model, FXUrlPush url )
+
+                        External url ->
+                            ( model, FXUrlLoad url )
+
+                UrlChanged url ->
+                    changeRouteTo (Route.fromUrl url) model.env session
 
 
 updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
@@ -98,8 +94,16 @@ updateFromBackend msg model =
     case msg of
         B2FSession session ->
             case model.state of
-                NotReady url ->
-                    changeRouteTo (Route.fromUrl url) model.env session
+                NotReady url ( t, tz ) ->
+                    let
+                        newEnv =
+                            model.env
+                                |> Env.setTimeWithZone
+                                    ( t |> Maybe.withDefault 0 |> Time.millisToPosix
+                                    , tz |> Maybe.withDefault Time.utc
+                                    )
+                    in
+                    changeRouteTo (Route.fromUrl url) newEnv session
 
                 Ready ( page, _ ) ->
                     ( { model | state = Ready ( page, session ) }, FXNone )
@@ -111,9 +115,12 @@ updateFromBackend msg model =
 
 view : FrontendModel -> Document FrontendMsg
 view model =
-    model
-        |> viewIfAppReady
-            (\p s -> Page.view model.env p s |> Page.mapDocument [] GotPageMsg)
+    case model.state of
+        NotReady _ _ ->
+            { title = "", body = [] }
+
+        Ready ( page, session ) ->
+            Page.view model.env page session |> Page.mapDocument [] GotPageMsg
 
 
 
@@ -131,23 +138,3 @@ fromPage env session ( page, effect ) =
     ( { env = env, state = Ready ( page, session ) }
     , mapEffect GotPageMsg effect
     )
-
-
-ifAppReady : (FrontendModel -> a) -> (Page -> Session -> a) -> FrontendModel -> a
-ifAppReady failure success model =
-    case model.state of
-        NotReady _ ->
-            failure model
-
-        Ready ( page, session ) ->
-            success page session
-
-
-updateIfAppReady : (Page -> Session -> ( FrontendModel, Effect FrontendMsg )) -> FrontendModel -> ( FrontendModel, Effect FrontendMsg )
-updateIfAppReady =
-    ifAppReady (\m -> ( m, FXNone ))
-
-
-viewIfAppReady : (Page -> Session -> Document FrontendMsg) -> FrontendModel -> Document FrontendMsg
-viewIfAppReady =
-    ifAppReady (\_ -> { title = "", body = [] })

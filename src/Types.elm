@@ -27,7 +27,7 @@ type alias FrontendModel =
 
 
 type AppState
-    = NotReady Url
+    = NotReady Url ( Maybe Int, Maybe Time.Zone )
     | Ready ( Page, Session )
 
 
@@ -38,13 +38,12 @@ type AppState
 type FrontendMsg
     = Ignored String
       --
-    | UrlClicked UrlRequest
-    | UrlChanged Url
-      --
+    | GotTick Time.Posix
     | GotTimeZone Time.Zone
     | GotPageMsg PageMsg
       --
-    | Tick Time.Posix
+    | UrlClicked UrlRequest
+    | UrlChanged Url
 
 
 type ToFrontend

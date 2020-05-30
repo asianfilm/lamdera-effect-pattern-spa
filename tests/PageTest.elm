@@ -7,6 +7,7 @@ import Secrets exposing (getSessionKey)
 import Session exposing (Session)
 import Test exposing (..)
 import Test.Html.Selector exposing (id)
+import Time
 import Types exposing (..)
 
 
@@ -14,14 +15,14 @@ baseUrl =
     "http://localhost:8000/"
 
 
-guestUserSession : Session
-guestUserSession =
-    Session.init
+guestUser : ( Session, Time.Posix )
+guestUser =
+    ( Session.init, Time.millisToPosix 0 )
 
 
-authenticatedUser : Session
+authenticatedUser : ( Session, Time.Posix )
 authenticatedUser =
-    Session.init |> Session.signIn getSessionKey "Stephen"
+    ( Session.init |> Session.signIn getSessionKey "Stephen", Time.millisToPosix 0 )
 
 
 suite : Test
@@ -31,23 +32,31 @@ suite =
             [ testNavigationLink "counter"
             , testNavigationLink "settings"
             ]
+        , describe "home page"
+            [ test "home page has clock" <|
+                \() ->
+                    guestUser
+                        |> start () (baseUrl ++ "#")
+                        |> expectViewHas
+                            [ id "clock" ]
+            ]
         , describe "settings page"
             [ test "settings page has dark mode button" <|
                 \() ->
-                    guestUserSession
+                    guestUser
                         |> start () (baseUrl ++ "#/settings")
                         |> expectViewHas
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button removes it" <|
                 \() ->
-                    guestUserSession
+                    guestUser
                         |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHasNot
                             [ id "button-dark-mode" ]
             , test "clicking dark mode button adds a light mode button" <|
                 \() ->
-                    guestUserSession
+                    guestUser
                         |> start () (baseUrl ++ "#/settings")
                         |> clickButton "Dark Mode"
                         |> expectViewHas
@@ -56,10 +65,10 @@ suite =
         ]
 
 
-start : () -> String -> Session -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
-start flags initialUrl initialSession =
+start : () -> String -> ( Session, Time.Posix ) -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
+start flags initialUrl setup =
     ProgramTest.createApplication
-        { init = \_ url _ -> Frontend.init (Just initialSession) url Nothing |> App.perform Ignored
+        { init = \_ url _ -> Frontend.init (Just setup) url Nothing |> App.perform Ignored
         , view = Frontend.view
         , update = \msg model -> Frontend.update msg model |> App.perform Ignored
         , onUrlChange = UrlChanged
@@ -73,7 +82,7 @@ testNavigationLink : String -> Test
 testNavigationLink link =
     test ("link to \"" ++ link ++ "\" page in navigation bar") <|
         \() ->
-            guestUserSession
+            guestUser
                 |> start () baseUrl
                 |> expectViewHas
                     [ id ("link-" ++ link) ]
