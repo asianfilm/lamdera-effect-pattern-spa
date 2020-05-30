@@ -40,7 +40,7 @@ update msg _ =
 
 
 view : Session -> Model -> { title : String, content : Html Msg }
-view _ model =
+view session model =
     { title = "Settings"
     , content =
         div []
@@ -48,7 +48,7 @@ view _ model =
             , p [ style "margin-top" "1em" ]
                 [ Button.button
                     |> Button.onClick (SetMode (reverseMode model))
-                    |> Button.withMode model
+                    |> Button.withMode (getMode session)
                     |> Button.withLabel (labelFromMode (reverseMode model))
                     |> Button.view
                 ]

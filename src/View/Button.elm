@@ -8,7 +8,8 @@ import Session exposing (Mode(..))
 
 type Button msg
     = Button
-        { color : String
+        { background : String
+        , color : String
         , label : String
         , onClick : msg
         }
@@ -17,7 +18,8 @@ type Button msg
 button : Button ()
 button =
     Button
-        { color = "white"
+        { background = ""
+        , color = ""
         , label = ""
         , onClick = ()
         }
@@ -28,20 +30,31 @@ buttonId label =
     label |> String.replace " " "-" |> String.toLower |> String.append "button-"
 
 
-colorFromMode : Mode -> String
-colorFromMode m =
+backgroundColorFromMode : Mode -> String
+backgroundColorFromMode m =
     case m of
         DarkMode ->
-            "black"
+            "#222222"
 
         LightMode ->
             "white"
 
 
+colorFromMode : Mode -> String
+colorFromMode m =
+    case m of
+        DarkMode ->
+            "#dddddd"
+
+        LightMode ->
+            "black"
+
+
 onClick : msgB -> Button msgA -> Button msgB
 onClick onClick_ (Button config) =
     Button
-        { color = config.color
+        { background = config.background
+        , color = config.color
         , label = config.label
         , onClick = onClick_
         }
@@ -49,7 +62,11 @@ onClick onClick_ (Button config) =
 
 withMode : Mode -> Button msg -> Button msg
 withMode m (Button config) =
-    Button { config | color = colorFromMode m }
+    Button
+        { config
+            | background = backgroundColorFromMode m
+            , color = colorFromMode m
+        }
 
 
 withLabel : String -> Button msg -> Button msg
@@ -62,7 +79,8 @@ view (Button config) =
     div [ Attr.style "display" "inline" ]
         [ Html.button
             [ Attr.id (buttonId config.label)
-            , Attr.style "backgroundColor" config.color
+            , Attr.style "backgroundColor" config.background
+            , Attr.style "color" config.color
             , Attr.style "padding" "0.5em"
             , Attr.style "border-radius" "0.4em"
             , Attr.style "margin-right" "0.4em"
