@@ -9,10 +9,6 @@ import Time
 import Types exposing (BackendModel, BackendMsg(..), ToBackend(..), ToFrontend(..))
 
 
-
--- MODEL
-
-
 app =
     Lamdera.backend
         { init = init |> perform BKIgnored
@@ -24,7 +20,7 @@ app =
             \sid cid msg model ->
                 updateFromFrontend sid cid msg model
                     |> perform BKIgnored
-        , subscriptions = subscriptions
+        , subscriptions = \_ -> Time.every (60 * 1000) BKGarbageCollect
         }
 
 
@@ -38,15 +34,6 @@ type BackendEffect msg
 init : ( BackendModel, BackendEffect BackendMsg )
 init =
     ( { sessions = Dict.empty, time = 0 }, FXTimeNowRQ BKGarbageCollect )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : BackendModel -> Sub BackendMsg
-subscriptions _ =
-    Time.every (60 * 1000) BKGarbageCollect
 
 
 
@@ -84,8 +71,6 @@ updateFromFrontend sid cid msg model =
                 Just ( _, s ) ->
                     s
 
-                -- Simply return a new session because, as-of-now, "mutating" messages update sessions dictionary.
-                -- May need explicitly update the session dictionary to include the new session and its timestamp.
                 Nothing ->
                     Session.init
     in

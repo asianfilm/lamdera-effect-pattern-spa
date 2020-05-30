@@ -8,10 +8,6 @@ import Url.Builder
 import Url.Parser as Parser exposing (Parser, oneOf, s)
 
 
-
--- MODEL
-
-
 type Route
     = Home
     | Counter

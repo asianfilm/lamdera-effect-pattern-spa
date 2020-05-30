@@ -12,20 +12,6 @@ import Time
 import Types exposing (..)
 
 
-baseUrl =
-    "http://localhost:8000/"
-
-
-guestUser : ( Session, Env.LocalTime )
-guestUser =
-    ( Session.init, ( Time.millisToPosix 1590819692000, Time.utc ) )
-
-
-authenticatedUser : ( Session, Env.LocalTime )
-authenticatedUser =
-    ( Session.init |> Session.signIn getSessionKey "Stephen", ( Time.millisToPosix 0, Time.utc ) )
-
-
 suite : Test
 suite =
     describe "page tests"
@@ -66,6 +52,24 @@ suite =
                             [ id "button-light-mode" ]
             ]
         ]
+
+
+
+-- HELPERS
+
+
+baseUrl =
+    "http://localhost:8000/"
+
+
+guestUser : ( Session, Env.LocalTime )
+guestUser =
+    ( Session.init, ( Time.millisToPosix 1590819692000, Time.utc ) )
+
+
+authenticatedUser : ( Session, Env.LocalTime )
+authenticatedUser =
+    ( Session.init |> Session.signIn getSessionKey "Stephen", ( Time.millisToPosix 0, Time.utc ) )
 
 
 start : () -> String -> ( Session, Env.LocalTime ) -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)

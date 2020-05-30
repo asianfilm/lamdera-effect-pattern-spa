@@ -14,10 +14,19 @@ import Url
 
 app config =
     Lamdera.frontend
-        { init = \url key -> config.init Nothing url (Just key) |> perform Ignored
+        { init =
+            \url key ->
+                config.init Nothing url (Just key)
+                    |> perform Ignored
         , view = config.view
-        , update = \msg model -> config.update msg model |> perform Ignored
-        , updateFromBackend = \msg model -> config.updateFromBackend msg model |> perform Ignored
+        , update =
+            \msg model ->
+                config.update msg model
+                    |> perform Ignored
+        , updateFromBackend =
+            \msg model ->
+                config.updateFromBackend msg model
+                    |> perform Ignored
         , subscriptions = config.subscriptions
         , onUrlChange = config.onUrlChange
         , onUrlRequest = config.onUrlRequest
@@ -73,7 +82,7 @@ perform ignore ( model, effect ) =
 
 
 
---PRIVATE HELPERS
+-- PRIVATE HELPERS
 
 
 batchEffect : (String -> msg) -> Effect msg -> ( FrontendModel, List (Cmd msg) ) -> ( FrontendModel, List (Cmd msg) )

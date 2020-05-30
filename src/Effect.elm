@@ -26,8 +26,6 @@ type Effect msg
     | FXScrollToTop
 
 
-{-| Transform the messages produced by an effect.
--}
 mapEffect : (a -> msg) -> Effect a -> Effect msg
 mapEffect changeMsg effect =
     case effect of

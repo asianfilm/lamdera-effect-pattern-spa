@@ -3,10 +3,6 @@ module Session exposing (Mode(..), Session, getCounter, getMode, getName, init, 
 import Secrets exposing (SessionKey)
 
 
-
--- TYPES
-
-
 type Session
     = Guest State
     | Authenticated State Cred
@@ -34,7 +30,7 @@ init =
 
 
 
--- COUNTER
+-- GETTERS
 
 
 getCounter : Session -> Int
@@ -47,20 +43,6 @@ getCounter s =
             state.counter
 
 
-setCounter : SessionKey -> Int -> Session -> Session
-setCounter _ i s =
-    case s of
-        Guest ({ counter } as state) ->
-            Guest { state | counter = counter + i }
-
-        Authenticated ({ counter } as state) cred ->
-            Authenticated { state | counter = counter + i } cred
-
-
-
--- MODE
-
-
 getMode : Session -> Mode
 getMode s =
     case s of
@@ -69,6 +51,20 @@ getMode s =
 
         Authenticated state _ ->
             state.mode
+
+
+getName : Session -> Maybe String
+getName s =
+    case s of
+        Guest _ ->
+            Nothing
+
+        Authenticated _ cred ->
+            Just cred.name
+
+
+
+-- SETTERS
 
 
 setMode : SessionKey -> Mode -> Session -> Session
@@ -81,18 +77,14 @@ setMode _ m s =
             Authenticated { state | mode = m } cred
 
 
-
--- NAME
-
-
-getName : Session -> Maybe String
-getName s =
+setCounter : SessionKey -> Int -> Session -> Session
+setCounter _ i s =
     case s of
-        Guest _ ->
-            Nothing
+        Guest ({ counter } as state) ->
+            Guest { state | counter = counter + i }
 
-        Authenticated _ cred ->
-            Just cred.name
+        Authenticated ({ counter } as state) cred ->
+            Authenticated { state | counter = counter + i } cred
 
 
 signIn : SessionKey -> String -> Session -> Session

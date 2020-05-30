@@ -6,16 +6,6 @@ import Session exposing (Mode(..), Session)
 import Test exposing (..)
 
 
-guestUser : Session
-guestUser =
-    Session.init
-
-
-authenticatedUser : Session
-authenticatedUser =
-    guestUser |> Session.signIn getSessionKey "Stephen"
-
-
 suite : Test
 suite =
     describe "Session"
@@ -41,3 +31,17 @@ suite =
                     |> Session.getName
                     |> Expect.equal (Just "Stephen")
         ]
+
+
+
+-- HELPERS
+
+
+guestUser : Session
+guestUser =
+    Session.init
+
+
+authenticatedUser : Session
+authenticatedUser =
+    guestUser |> Session.signIn getSessionKey "Stephen"

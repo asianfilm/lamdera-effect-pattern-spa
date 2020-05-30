@@ -7,10 +7,6 @@ import Session exposing (Mode(..), Session(..), getMode)
 import View.Button as Button
 
 
-
--- MODEL
-
-
 type alias Model =
     Mode
 

@@ -10,10 +10,6 @@ import Time
 import Url exposing (Url)
 
 
-
--- MODELS
-
-
 type alias BackendModel =
     { sessions : Dict SessionId ( Int, Session )
     , time : Int
@@ -29,10 +25,6 @@ type alias FrontendModel =
 type AppState
     = NotReady Url ( Maybe Int, Maybe Time.Zone )
     | Ready ( Page, Session )
-
-
-
--- MESSAGES
 
 
 type FrontendMsg

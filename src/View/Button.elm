@@ -15,6 +15,10 @@ type Button msg
         }
 
 
+
+-- BUILDERS
+
+
 button : Button ()
 button =
     Button
@@ -23,31 +27,6 @@ button =
         , label = ""
         , onClick = ()
         }
-
-
-buttonId : String -> String
-buttonId label =
-    label |> String.replace " " "-" |> String.toLower |> String.append "button-"
-
-
-backgroundColorFromMode : Mode -> String
-backgroundColorFromMode m =
-    case m of
-        DarkMode ->
-            "#222222"
-
-        LightMode ->
-            "white"
-
-
-colorFromMode : Mode -> String
-colorFromMode m =
-    case m of
-        DarkMode ->
-            "#dddddd"
-
-        LightMode ->
-            "black"
 
 
 onClick : msgB -> Button msgA -> Button msgB
@@ -74,6 +53,10 @@ withLabel label (Button config) =
     Button { config | label = label }
 
 
+
+-- VIEW
+
+
 view : Button msg -> Html msg
 view (Button config) =
     div [ Attr.style "display" "inline" ]
@@ -89,3 +72,32 @@ view (Button config) =
             ]
             [ text config.label ]
         ]
+
+
+
+-- PRIVATE HELPERS
+
+
+buttonId : String -> String
+buttonId label =
+    label |> String.replace " " "-" |> String.toLower |> String.append "button-"
+
+
+backgroundColorFromMode : Mode -> String
+backgroundColorFromMode m =
+    case m of
+        DarkMode ->
+            "#222222"
+
+        LightMode ->
+            "white"
+
+
+colorFromMode : Mode -> String
+colorFromMode m =
+    case m of
+        DarkMode ->
+            "#dddddd"
+
+        LightMode ->
+            "black"

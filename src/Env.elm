@@ -13,10 +13,6 @@ import Browser.Navigation as Nav
 import Time
 
 
-
--- MODEL
-
-
 type Env
     = DevOrProd (Maybe LocalTime) Nav.Key
     | Testing (Maybe LocalTime)

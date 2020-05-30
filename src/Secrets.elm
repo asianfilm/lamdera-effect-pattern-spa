@@ -5,6 +5,10 @@ type SessionKey
     = SessionKey
 
 
+
+-- GETTERS
+
+
 getSessionKey : SessionKey
 getSessionKey =
     SessionKey

@@ -25,14 +25,6 @@ app =
         }
 
 
-
--- INIT
-
-
-{-| The init function behaves differently in different modes
--- (1) Testing: init starts with a session, but usually without a navigation key
--- (2) Production or development: no initial session, which is immediately requested
--}
 init : Maybe ( Session, Env.LocalTime ) -> Url.Url -> Maybe Nav.Key -> ( FrontendModel, Effect FrontendMsg )
 init testSetup url navKey =
     case testSetup of
@@ -120,7 +112,7 @@ view model =
 
 
 
--- HELPERS
+-- PRIVATE HELPERS
 
 
 changeRouteTo : Maybe Route -> Env -> Session -> ( FrontendModel, Effect FrontendMsg )

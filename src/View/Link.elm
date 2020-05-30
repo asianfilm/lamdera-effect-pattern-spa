@@ -14,6 +14,10 @@ type Link msg
         }
 
 
+
+-- BUILDERS
+
+
 link : Link ()
 link =
     Link
@@ -47,6 +51,10 @@ onClick onClick_ (Link config) =
 withLabel : String -> Link msg -> Link msg
 withLabel label (Link config) =
     Link { config | label = label }
+
+
+
+-- VIEW
 
 
 view : Link msg -> Html msg

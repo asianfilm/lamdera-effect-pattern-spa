@@ -8,10 +8,6 @@ import Session exposing (Session)
 import Time
 
 
-
--- MODEL
-
-
 type alias Model =
     {}
 
