@@ -29,10 +29,10 @@ init : Maybe ( Session, Env.LocalTime ) -> Url.Url -> Maybe Nav.Key -> ( Fronten
 init testSetup url navKey =
     case testSetup of
         Just ( session, localTime ) ->
-            changeRouteTo (Route.fromUrl url) (Env.init navKey (Just localTime)) session
+            changeRouteTo (Route.fromUrl url) (Env.initTest localTime) session
 
         Nothing ->
-            ( { env = Env.init navKey Nothing, state = NotReady url ( Nothing, Nothing ) }
+            ( { env = Env.init navKey, state = NotReady url ( Nothing, Nothing ) }
             , FXBatch [ FXSessionRQ, FXTimeNowRQ GotTick, FXTimeZoneRQ GotTimeZone ]
             )
 

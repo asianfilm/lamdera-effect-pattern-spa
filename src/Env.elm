@@ -2,6 +2,7 @@ module Env exposing
     ( Env
     , LocalTime
     , init
+    , initTest
     , navKey
     , setTime
     , setTimeWithZone
@@ -14,25 +15,29 @@ import Time
 
 
 type Env
-    = DevOrProd (Maybe LocalTime) Nav.Key
-    | Testing (Maybe LocalTime)
+    = NotReady Nav.Key
+    | Ready Nav.Key LocalTime
+    | Testing LocalTime
+    | Invalid
 
 
 type alias LocalTime =
     ( Time.Posix, Time.Zone )
 
 
-init : Maybe Nav.Key -> Maybe LocalTime -> Env
-init maybeKey maybeLocalTime =
-    case ( maybeKey, maybeLocalTime ) of
-        ( Just key, _ ) ->
-            DevOrProd Nothing key
+init : Maybe Nav.Key -> Env
+init maybeKey =
+    case maybeKey of
+        Just key ->
+            NotReady key
 
-        ( Nothing, Nothing ) ->
-            Testing Nothing
+        _ ->
+            Invalid
 
-        ( _, lt ) ->
-            Testing lt
+
+initTest : LocalTime -> Env
+initTest lt =
+    Testing lt
 
 
 
@@ -42,21 +47,27 @@ init maybeKey maybeLocalTime =
 navKey : Env -> Maybe Nav.Key
 navKey env =
     case env of
-        Testing _ ->
-            Nothing
-
-        DevOrProd _ key ->
+        NotReady key ->
             Just key
 
+        Ready key _ ->
+            Just key
 
-timeWithZone : Env -> Maybe ( Time.Posix, Time.Zone )
+        _ ->
+            Nothing
+
+
+timeWithZone : Env -> Maybe LocalTime
 timeWithZone env =
     case env of
-        Testing lt ->
-            lt
+        Ready _ lt ->
+            Just lt
 
-        DevOrProd lt _ ->
-            lt
+        Testing lt ->
+            Just lt
+
+        _ ->
+            Nothing
 
 
 
@@ -66,47 +77,40 @@ timeWithZone env =
 setTime : Time.Posix -> Env -> Env
 setTime t env =
     case env of
-        Testing (Just ( _, tz )) ->
-            Testing (Just ( t, tz ))
+        Ready key ( _, tz ) ->
+            Ready key ( t, tz )
 
-        Testing Nothing ->
-            Testing Nothing
+        Testing ( _, tz ) ->
+            Testing ( t, tz )
 
-        DevOrProd (Just ( _, tz )) key ->
-            DevOrProd (Just ( t, tz )) key
-
-        DevOrProd Nothing key ->
-            DevOrProd Nothing key
+        _ ->
+            env
 
 
 setTimeZone : Time.Zone -> Env -> Env
 setTimeZone tz env =
     case env of
-        Testing (Just ( t, _ )) ->
-            Testing (Just ( t, tz ))
+        Ready key ( t, _ ) ->
+            Ready key ( t, tz )
 
-        Testing Nothing ->
-            Testing Nothing
+        Testing ( t, _ ) ->
+            Testing ( t, tz )
 
-        DevOrProd (Just ( t, _ )) key ->
-            DevOrProd (Just ( t, tz )) key
-
-        DevOrProd Nothing key ->
-            DevOrProd Nothing key
+        _ ->
+            env
 
 
 setTimeWithZone : ( Maybe Int, Maybe Time.Zone ) -> Env -> Env
 setTimeWithZone ( maybeTime, maybeZone ) env =
     let
-        maybeLocalTime =
-            Just
-                ( maybeTime |> Maybe.withDefault 0 |> Time.millisToPosix
-                , maybeZone |> Maybe.withDefault Time.utc
-                )
+        localTime =
+            ( maybeTime |> Maybe.withDefault 0 |> Time.millisToPosix
+            , maybeZone |> Maybe.withDefault Time.utc
+            )
     in
     case env of
-        Testing _ ->
-            Testing maybeLocalTime
+        NotReady key ->
+            Ready key localTime
 
-        DevOrProd _ key ->
-            DevOrProd maybeLocalTime key
+        _ ->
+            env
