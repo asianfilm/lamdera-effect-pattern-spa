@@ -44,29 +44,30 @@ view session model =
     { title = "Counter"
     , content =
         div []
-            [ viewCounter session "Page State Counter" (Tuple.first model) UpdatePageCounter
-            , viewCounter session "Local State Counter" (getCounter session) UpdateSessionCounter
+            [ viewCounterGroup session "Page State Counter" (Tuple.first model) UpdatePageCounter
+            , viewCounterGroup session "Session State Counter" (getCounter session) UpdateSessionCounter
             ]
     }
 
 
-viewCounter : Session -> String -> Int -> (Int -> Msg) -> Html Msg
-viewCounter session label value msg =
+viewCounterGroup : Session -> String -> Int -> (Int -> Msg) -> Html Msg
+viewCounterGroup session label value msg =
     div
         [ style "margin-bottom" "3em"
         ]
         [ text (String.toUpper label)
         , p [ style "margin-top" "1em" ]
-            [ Button.button
-                |> Button.onClick (msg -1)
-                |> Button.withMode (getMode session)
-                |> Button.withLabel "-"
-                |> Button.view
-            , Button.button
-                |> Button.onClick (msg 1)
-                |> Button.withMode (getMode session)
-                |> Button.withLabel "+"
-                |> Button.view
+            [ viewCounter session "-" (msg -1)
+            , viewCounter session "+" (msg 1)
             , text (" " ++ String.fromInt value ++ " ")
             ]
         ]
+
+
+viewCounter : Session -> String -> Msg -> Html Msg
+viewCounter session label msg =
+    Button.button
+        |> Button.onClick msg
+        |> Button.withMode (getMode session)
+        |> Button.withLabel label
+        |> Button.view
