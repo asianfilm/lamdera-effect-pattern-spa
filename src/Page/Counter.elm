@@ -1,7 +1,7 @@
 module Page.Counter exposing (Model, Msg, init, update, view)
 
 import Effect exposing (Effect(..))
-import Html exposing (Html, div, p, text)
+import Html exposing (Html, div, p, span, text)
 import Html.Attributes exposing (style)
 import Session exposing (Session, getCounter, getMode)
 import View.Button as Button
@@ -66,8 +66,10 @@ viewCounterGroup session label value msg =
 
 viewCounter : Session -> String -> Msg -> Html Msg
 viewCounter session label msg =
-    Button.button
-        |> Button.onClick msg
-        |> Button.withMode (getMode session)
-        |> Button.withLabel label
-        |> Button.view
+    span [ style "margin-right" "1em" ]
+        [ Button.button
+            |> Button.onClick msg
+            |> Button.withMode (getMode session)
+            |> Button.withLabel label
+            |> Button.view
+        ]

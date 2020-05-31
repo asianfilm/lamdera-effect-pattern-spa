@@ -1,6 +1,6 @@
 module View.Button exposing (button, onClick, view, withLabel, withMode)
 
-import Html exposing (Html, div, text)
+import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Session exposing (Mode(..))
@@ -8,9 +8,8 @@ import Session exposing (Mode(..))
 
 type Button msg
     = Button
-        { background : String
-        , color : String
-        , label : String
+        { label : String
+        , mode : Maybe Mode
         , onClick : msg
         }
 
@@ -22,9 +21,8 @@ type Button msg
 button : Button ()
 button =
     Button
-        { background = ""
-        , color = ""
-        , label = ""
+        { label = ""
+        , mode = Nothing
         , onClick = ()
         }
 
@@ -32,20 +30,15 @@ button =
 onClick : msgB -> Button msgA -> Button msgB
 onClick onClick_ (Button config) =
     Button
-        { background = config.background
-        , color = config.color
-        , label = config.label
+        { label = config.label
+        , mode = config.mode
         , onClick = onClick_
         }
 
 
 withMode : Mode -> Button msg -> Button msg
 withMode m (Button config) =
-    Button
-        { config
-            | background = backgroundColorFromMode m
-            , color = colorFromMode m
-        }
+    Button { config | mode = Just m }
 
 
 withLabel : String -> Button msg -> Button msg
@@ -61,15 +54,7 @@ view : Button msg -> Html msg
 view (Button config) =
     div [ Attr.style "display" "inline" ]
         [ Html.button
-            [ Attr.id (buttonId config.label)
-            , Attr.style "backgroundColor" config.background
-            , Attr.style "color" config.color
-            , Attr.style "padding" "0.5em"
-            , Attr.style "border-radius" "0.4em"
-            , Attr.style "margin-right" "0.4em"
-            , Attr.style "outline" "none"
-            , Events.onClick config.onClick
-            ]
+            (styleFromMode (Button config))
             [ text config.label ]
         ]
 
@@ -80,24 +65,30 @@ view (Button config) =
 
 buttonId : String -> String
 buttonId label =
-    label |> String.replace " " "-" |> String.toLower |> String.append "button-"
+    label
+        |> String.replace " " "-"
+        |> String.toLower
+        |> String.append "button-"
 
 
-backgroundColorFromMode : Mode -> String
-backgroundColorFromMode m =
-    case m of
-        DarkMode ->
-            "#222222"
+styleFromMode : Button msg -> List (Attribute msg)
+styleFromMode (Button config) =
+    case config.mode of
+        Just LightMode ->
+            [ Attr.id (buttonId config.label)
+            , Attr.class "bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow"
+            , Events.onClick config.onClick
+            ]
 
-        LightMode ->
-            "white"
+        Just DarkMode ->
+            [ Attr.id (buttonId config.label)
+            , Attr.class "bg-black hover:bg-gray-100 text-gray-200 py-2 px-4 border border-gray-600 rounded shadow"
+            , Events.onClick config.onClick
+            ]
 
-
-colorFromMode : Mode -> String
-colorFromMode m =
-    case m of
-        DarkMode ->
-            "#dddddd"
-
-        LightMode ->
-            "black"
+        Nothing ->
+            [ Attr.id (buttonId config.label)
+            , Attr.class "block inline-block mt-0 text-teal-200 mr-4"
+            , Attr.class "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white"
+            , Events.onClick config.onClick
+            ]

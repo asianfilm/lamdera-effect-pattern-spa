@@ -18,6 +18,7 @@ import Page.NotFound as NotFound
 import Page.Settings as Settings
 import Route exposing (Route)
 import Session exposing (Mode(..), Session(..), getMode)
+import View.Button as Button
 import View.Link as Link
 
 
@@ -38,7 +39,6 @@ type PageMsg
 type NavBarMsg
     = Login
     | Logout
-    | ClickLink Route
 
 
 
@@ -67,9 +67,6 @@ update msg page =
 
                 Logout ->
                     ( page, FXLogout )
-
-                ClickLink route ->
-                    ( page, FXUrlLoad (Route.routeToString route) )
 
         ( _, _ ) ->
             ( NotFound, FXNone )
@@ -134,28 +131,38 @@ viewHeader session page =
         [ div [ Attr.class "flex items-center flex-shrink-0 text-white mr-6" ]
             [ div [ Attr.class "w-full flex-grow flex items-center w-auto" ]
                 [ div [ Attr.class "text-md flex-grow" ]
-                    (List.map (viewLinkHelper page) [ Route.Home, Route.Counter, Route.Settings ])
+                    (List.map (viewNavLink page) [ Route.Home, Route.Counter, Route.Settings ])
                 ]
             ]
         , div []
-            (viewAuthLinks session)
+            [ viewAuthButton session ]
         ]
     ]
 
 
-viewAuthLinks : Session -> List (Html PageMsg)
-viewAuthLinks session =
+viewAuthButton : Session -> Html PageMsg
+viewAuthButton session =
     case Session.getName session of
         Just name ->
-            [ viewLink True True ("Logout " ++ name) (NavBarMsg Logout) ]
+            Button.button
+                |> Button.onClick (NavBarMsg Logout)
+                |> Button.withLabel ("Logout " ++ name)
+                |> Button.view
 
         Nothing ->
-            [ viewLink True True "Login" (NavBarMsg Login) ]
+            Button.button
+                |> Button.onClick (NavBarMsg Login)
+                |> Button.withLabel "Login"
+                |> Button.view
 
 
-viewLinkHelper : Page -> Route -> Html PageMsg
-viewLinkHelper page route =
-    viewLink (isActive page route) False (Route.toLabel route) (NavBarMsg (ClickLink route))
+viewNavLink : Page -> Route -> Html PageMsg
+viewNavLink page route =
+    Link.link
+        |> Link.isActive (isActive page route)
+        |> Link.withAnchor (Route.href route)
+        |> Link.withLabel (Route.toLabel route)
+        |> Link.view
 
 
 
@@ -224,13 +231,3 @@ textColorFromMode m =
 
         LightMode ->
             "black"
-
-
-viewLink : Bool -> Bool -> String -> msg -> Html msg
-viewLink active bounded label msg =
-    Link.link
-        |> Link.isActive active
-        |> Link.isBounded bounded
-        |> Link.onClick msg
-        |> Link.withLabel label
-        |> Link.view

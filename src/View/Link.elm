@@ -1,16 +1,14 @@
-module View.Link exposing (isActive, isBounded, link, onClick, view, withLabel)
+module View.Link exposing (isActive, link, view, withAnchor, withLabel)
 
-import Html exposing (Html, div, text)
+import Html exposing (Attribute, Html, a, text)
 import Html.Attributes as Attr
-import Html.Events as Events
 
 
 type Link msg
     = Link
-        { isActive : Bool
-        , isBounded : Bool
+        { anchor : Attribute msg
+        , active : Bool
         , label : String
-        , onClick : msg
         }
 
 
@@ -21,30 +19,23 @@ type Link msg
 link : Link ()
 link =
     Link
-        { isActive = False
-        , isBounded = False
+        { anchor = Attr.href ""
+        , active = False
         , label = ""
-        , onClick = ()
         }
 
 
 isActive : Bool -> Link msg -> Link msg
 isActive active (Link config) =
-    Link { config | isActive = active }
+    Link { config | active = active }
 
 
-isBounded : Bool -> Link msg -> Link msg
-isBounded bounded (Link config) =
-    Link { config | isBounded = bounded }
-
-
-onClick : msg -> Link () -> Link msg
-onClick onClick_ (Link config) =
+withAnchor : Attribute msg -> Link () -> Link msg
+withAnchor href (Link config) =
     Link
-        { isActive = config.isActive
-        , isBounded = config.isBounded
+        { anchor = href
+        , active = config.active
         , label = config.label
-        , onClick = onClick_
         }
 
 
@@ -59,11 +50,10 @@ withLabel label (Link config) =
 
 view : Link msg -> Html msg
 view (Link config) =
-    div
+    a
         [ Attr.id (config.label |> String.replace " " "-" |> String.toLower |> String.append "link-")
         , Attr.class "block inline-block mt-0 text-teal-200 mr-4"
-        , Attr.classList [ ( "hover:text-white", not config.isActive ) ]
-        , Attr.classList [ ( "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white", config.isBounded ) ]
-        , Events.onClick config.onClick
+        , Attr.classList [ ( "hover:text-white", not config.active ) ]
+        , config.anchor
         ]
         [ text config.label ]
