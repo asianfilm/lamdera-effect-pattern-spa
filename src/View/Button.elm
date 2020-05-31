@@ -54,41 +54,33 @@ view : Button msg -> Html msg
 view (Button config) =
     div [ Attr.style "display" "inline" ]
         [ Html.button
-            (styleFromMode (Button config))
+            (commonStyling (Button config) ++ modeStyling (Button config))
             [ text config.label ]
         ]
 
 
 
--- PRIVATE HELPERS
+-- STYLES
 
 
-buttonId : String -> String
-buttonId label =
-    label
-        |> String.replace " " "-"
-        |> String.toLower
-        |> String.append "button-"
+commonStyling : Button msg -> List (Attribute msg)
+commonStyling (Button config) =
+    [ Attr.id (config.label |> String.replace " " "-" |> String.toLower |> String.append "button-")
+    , Attr.style "outline" "none"
+    , Events.onClick config.onClick
+    ]
 
 
-styleFromMode : Button msg -> List (Attribute msg)
-styleFromMode (Button config) =
+modeStyling : Button msg -> List (Attribute msg)
+modeStyling (Button config) =
     case config.mode of
         Just LightMode ->
-            [ Attr.id (buttonId config.label)
-            , Attr.class "bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow"
-            , Events.onClick config.onClick
-            ]
+            [ Attr.class "bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow" ]
 
         Just DarkMode ->
-            [ Attr.id (buttonId config.label)
-            , Attr.class "bg-black hover:bg-gray-100 text-gray-200 py-2 px-4 border border-gray-600 rounded shadow"
-            , Events.onClick config.onClick
-            ]
+            [ Attr.class "bg-black hover:bg-gray-100 text-gray-200 py-2 px-4 border border-gray-600 rounded shadow" ]
 
         Nothing ->
-            [ Attr.id (buttonId config.label)
-            , Attr.class "block inline-block mt-0 text-teal-200 mr-4"
+            [ Attr.class "block inline-block mt-0 text-teal-200 mr-4"
             , Attr.class "inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white"
-            , Events.onClick config.onClick
             ]
