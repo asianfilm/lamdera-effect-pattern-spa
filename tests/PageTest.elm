@@ -29,6 +29,20 @@ suite =
                             , text "The time is 06:21"
                             ]
             ]
+        , describe "login"
+            [ test "home page has login button for guest user" <|
+                \() ->
+                    guestUser
+                        |> start () (baseUrl ++ "#")
+                        |> expectViewHas
+                            [ id "button-login" ]
+            , test "home page has logout button for authenticated user" <|
+                \() ->
+                    authenticatedUser
+                        |> start () (baseUrl ++ "#")
+                        |> expectViewHas
+                            [ id "button-logout-stephen" ]
+            ]
         , describe "settings page"
             [ test "settings page has dark mode button" <|
                 \() ->
@@ -69,15 +83,21 @@ guestUser =
 
 authenticatedUser : ( Session, Env.LocalTime )
 authenticatedUser =
-    ( Session.init |> Session.signIn getSessionKey "Stephen", ( Time.millisToPosix 0, Time.utc ) )
+    ( Session.init |> Session.signIn getSessionKey "Stephen", ( Time.millisToPosix 1590819692000, Time.utc ) )
 
 
 start : () -> String -> ( Session, Env.LocalTime ) -> ProgramTest FrontendModel FrontendMsg (Cmd FrontendMsg)
 start flags testUrl testSetup =
     ProgramTest.createApplication
-        { init = \_ url _ -> Frontend.init (Just testSetup) url Nothing |> App.perform Ignored
+        { init =
+            \_ url _ ->
+                Frontend.init (Just testSetup) url Nothing
+                    |> App.perform Ignored
         , view = Frontend.view
-        , update = \msg model -> Frontend.update msg model |> App.perform Ignored
+        , update =
+            \msg model ->
+                Frontend.update msg model
+                    |> App.perform Ignored
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlClicked
         }
