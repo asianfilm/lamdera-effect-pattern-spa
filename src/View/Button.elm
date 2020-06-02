@@ -78,7 +78,7 @@ modeStyling (Button config) =
             [ Attr.class "bg-white hover:bg-gray-100 text-gray-800 py-2 px-4 border border-gray-400 rounded shadow" ]
 
         Just DarkMode ->
-            [ Attr.class "bg-black hover:bg-gray-100 text-gray-200 py-2 px-4 border border-gray-600 rounded shadow" ]
+            [ Attr.class "bg-black hover:bg-gray-600 text-gray-200 py-2 px-4 border border-gray-600 rounded shadow" ]
 
         Nothing ->
             [ Attr.class "block inline-block mt-0 text-teal-200 mr-4"

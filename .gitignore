@@ -8,9 +8,6 @@ lamdera-stuff
 # Repositories
 .gitignore
 
-# Tailwind CSS
-dist
-
 # Yarn
 node_modules
 yarn.lock
